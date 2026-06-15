@@ -13,8 +13,8 @@ cada escopo é travado.
 | 4 | Modelo de dados | ✅ Definido |
 | 5 | **UI & Design System** | ✅ Definido |
 | 6 | **Integrações** | ✅ Definido |
-| 7 | Segurança & privacidade | 🟡 Parcial (gitignore/.env feitos) |
-| 8 | Método de trabalho | 🟡 Parcial (filosofia alinhada) |
+| 7 | **Segurança & privacidade** | ✅ Definido |
+| 8 | **Método de trabalho** | ✅ Definido |
 
 ---
 
@@ -213,12 +213,26 @@ exige agregador; o consentimento expira.
 Local-first: o app funciona **offline**; integração externa é *best-effort* e
 nunca bloqueia a UI.
 
-## 7. Segurança & privacidade 🟡
+## 7. Segurança & privacidade ✅
 
-Feito: `.gitignore` (banco + `.env`), segredos em `.env.local`. Falta: cripto em
-repouso dos tokens e auth (só relevante quando/se for pra servidor).
+Escopo atual (local-first) — suficiente e feito:
+- Dados só na máquina; `.gitignore` protege banco (`*.sqlite`/`*.db`) e segredos
+  (`.env*`).
+- Token brapi e afins em `.env.local` — nunca no banco, no git ou em chat.
 
-## 8. Método de trabalho 🟡
+**Deferido** (gatilho = decisão de deploy): auth (Auth.js/MFA **ou** VPN
+Tailscale), HTTPS, cripto-em-repouso dos tokens, backup Litestream.
 
-Filosofia: fatias verticais, git desde o dia 1, spec-antes-de-código, revisão.
-Falta formalizar o "como".
+## 8. Método de trabalho ✅
+
+- **Fatias verticais** — uma feature ponta-a-ponta por vez, começando na Fase 0.
+- **Workflow de branches:** `feature/*` → merge em `dev` → **testar (rodar o
+  app)** → promover `feature/*` para `main`. `dev` = integração/teste; `main` =
+  sempre testada/releasável. (Com o EC2 futuro: `dev`→staging, `main`→prod.)
+- **Carve-out:** docs/config triviais (ex.: `escopo.md`) podem ir direto na `main`.
+- **Commits** pequenos, em inglês.
+- **Spec viva** = `docs/escopo.md`.
+- **Colaboração:** proponho → você corta/adiciona → implemento e **mostro
+  rodando** → você valida. Passos pequenos e verificáveis.
+- **Testes:** testar de fato (rodar o app), foco na **matemática de dinheiro**.
+- **"Pronto"** por fatia = roda no app + testado + commitado + em `main`.
