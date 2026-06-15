@@ -10,8 +10,8 @@ cada escopo é travado.
 | 1 | Arquitetura & Desempenho | ✅ Definido |
 | 2 | Forma do app & acesso | ✅ Definido |
 | 3 | Escopo funcional | ✅ Definido |
-| 4 | **Modelo de dados** | ✅ Definido |
-| 5 | UI & Design System | 🟡 Parcial (ferramentas escolhidas; faltam telas) |
+| 4 | Modelo de dados | ✅ Definido |
+| 5 | **UI & Design System** | ✅ Definido |
 | 6 | Integrações | 🟡 Parcial (fontes decididas; falta travar fase) |
 | 7 | Segurança & privacidade | 🟡 Parcial (gitignore/.env feitos) |
 | 8 | Método de trabalho | 🟡 Parcial (filosofia alinhada) |
@@ -144,9 +144,31 @@ Modelo **inicial** — evolui conforme as fases. Nomes em inglês (ver Convenç�
 
 ---
 
-## 5. UI & Design System 🟡
+## 5. UI & Design System ✅
 
-Ferramentas: Tailwind + shadcn/ui + Recharts. Faltam: telas e direção visual.
+### Direção visual
+
+- **Fundação "Claude calmo":** superfícies planas, muito espaço, neutros quentes,
+  zero gradiente/sombra.
+- **Identidade do Norte:** acento **índigo "estrela do norte"** sobre a base
+  quente; **números-herói em serif** (toque editorial).
+- **Semântica de dinheiro:** verde = entradas/dividendos; gasto em texto neutro;
+  vermelho **só** para alerta (estouro de alvo).
+- **Ferramentas:** Tailwind + shadcn/ui + Recharts.
+
+### Telas — Fase 0
+
+`Dashboard` (KPIs + gasto por mês/categoria + lançamentos recentes) ·
+`Transações` (lista + importar OFX) · `Categorias`.
+
+### Linguagem de movimento ("imersivo, não exagerado")
+
+- **Onde:** entrada (números sobem, barras crescem, listas em *stagger*); mudança
+  de estado (toggles/abas deslizam, gráfico reanima); micro-feedback (hover/press).
+- **Tempos:** micro ~120ms · estado ~200ms · entrada ~500–800ms. Easing
+  **ease-out**; sem bounce elástico.
+- **Barato:** animar só `transform`/`opacity` (60fps).
+- **Limites:** nada de loop/idle infinito; respeitar `prefers-reduced-motion`.
 
 ## 6. Integrações 🟡
 
