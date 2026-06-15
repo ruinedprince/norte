@@ -12,7 +12,7 @@ cada escopo é travado.
 | 3 | Escopo funcional | ✅ Definido |
 | 4 | Modelo de dados | ✅ Definido |
 | 5 | **UI & Design System** | ✅ Definido |
-| 6 | Integrações | 🟡 Parcial (fontes decididas; falta travar fase) |
+| 6 | **Integrações** | ✅ Definido |
 | 7 | Segurança & privacidade | 🟡 Parcial (gitignore/.env feitos) |
 | 8 | Método de trabalho | 🟡 Parcial (filosofia alinhada) |
 
@@ -170,10 +170,48 @@ Modelo **inicial** — evolui conforme as fases. Nomes em inglês (ver Convenç�
 - **Barato:** animar só `transform`/`opacity` (60fps).
 - **Limites:** nada de loop/idle infinito; respeitar `prefers-reduced-motion`.
 
-## 6. Integrações 🟡
+## 6. Integrações ✅
 
-Fontes: OFX/CSV (Inter), brapi (cotações/dividendos), Pluggy (Open Finance,
-futuro). Falta travar o que entra em cada fase.
+Cada fonte externa entra por uma **porta (interface)**; o domínio não conhece os
+detalhes (anti-corruption layer) → trocar/adicionar fonte sem tocar no núcleo.
+
+### Faseamento
+
+| Fase | Integração | Entra |
+|---|---|---|
+| 0 | OFX/CSV (Inter) | importar extrato → transações |
+| 1 | — | nada externo |
+| 2 | brapi | cotações + dividendos de FII |
+| Futuro | Pluggy (Open Finance) | saldo/posições automáticos |
+
+### OFX adapter (Fase 0) — porta `ImportSource`
+
+- Priorizar **OFX** (traz `FITID`); **CSV** como fallback (ex.: fatura do cartão).
+- Aguentar **OFX 1.x (SGML, fechamento de tag opcional)** e **2.x (XML)**.
+- Tratar **encoding Latin-1/Windows-1252** (acentos).
+- **Dedup:** `(account + FITID)` com fallback por hash `(date+amount+memo)` quando
+  o FITID faltar/repetir. Import **idempotente**.
+- Libs candidatas (atrás do adapter): `ofx-data-extractor`, `@hublaw/ofx-parser`.
+  Validar com OFX **real do Inter** na Fase 0.
+
+### brapi (Fase 2) — porta `QuoteProvider`
+
+- **Token grátis obrigatório** pra FII (sem token cobre só 4 blue-chips). `Bearer`
+  no `.env.local`.
+- Endpoints: `/api/v2/fii/...` ou `/api/quote/{ticker}?dividends=true`.
+- **Snapshot diário** (1 chamada/ticker/dia) → histórico acumula local; respeita
+  o rate limit (erro 402 ao estourar).
+- Cache + **degradação graciosa** (offline mostra a última cotação salva).
+
+### Pluggy (Futuro)
+
+Entra pela mesma porta `ImportSource`. Gatilho: o import manual incomodar. PF
+exige agregador; o consentimento expira.
+
+### Princípio transversal
+
+Local-first: o app funciona **offline**; integração externa é *best-effort* e
+nunca bloqueia a UI.
 
 ## 7. Segurança & privacidade 🟡
 
