@@ -9,12 +9,23 @@ cada escopo é travado.
 |---|--------|--------|
 | 1 | Arquitetura & Desempenho | ✅ Definido |
 | 2 | Forma do app & acesso | ✅ Definido |
-| 3 | **Escopo funcional** | ✅ Definido |
-| 4 | Modelo de dados | ⬜ A definir |
+| 3 | Escopo funcional | ✅ Definido |
+| 4 | **Modelo de dados** | ✅ Definido |
 | 5 | UI & Design System | 🟡 Parcial (ferramentas escolhidas; faltam telas) |
 | 6 | Integrações | 🟡 Parcial (fontes decididas; falta travar fase) |
 | 7 | Segurança & privacidade | 🟡 Parcial (gitignore/.env feitos) |
 | 8 | Método de trabalho | 🟡 Parcial (filosofia alinhada) |
+
+---
+
+## Convenções
+
+- **Idioma:** código, schema do banco, identificadores e comentários em
+  **inglês**; **só a UI** em português (via i18n — chaves em inglês, textos em PT).
+- **Dinheiro:** sempre inteiro em **centavos** (`amountCents`), nunca float.
+- **Commits:** mensagens em **inglês** (a partir de 2026-06-15; os 2 primeiros
+  commits ficaram em PT, sem reescrever histórico).
+- **Docs:** `README` e `docs/` em português (anotações do dono do projeto).
 
 ---
 
@@ -95,9 +106,43 @@ principal sem depender de API externa. Reavaliar se a prioridade mudar.
 
 ---
 
-## 4. Modelo de dados ⬜
+## 4. Modelo de dados ✅
 
-_A definir — próximo._
+Modelo **inicial** — evolui conforme as fases. Nomes em inglês (ver Convenções).
+
+### Decisões
+
+- **Dinheiro em centavos** (inteiro), nunca float — é daqui que vem a exatidão de
+  centavo, não do modelo de lançamento.
+- **Single-entry:** transação tem conta + valor **com sinal** + tipo;
+  transferência é um par linkado (`transferGroupId`) pra não contar em dobro.
+  Evolui pra double-entry depois, se um dia precisar.
+
+### Entidades — Fase 0 (núcleo)
+
+- **Account** — `id`, `name`, `type` (checking | savings | cash | brokerage),
+  `currency` (default BRL)
+- **Transaction** — `id`, `accountId`, `date`, `amountCents` (com sinal), `type`
+  (income | expense | transfer), `categoryId?`, `description`, `source`
+  (ofx | manual), `externalId?` (dedup do import), `transferGroupId?`
+- **Category** — `id`, `name`, `parentId?` (hierarquia), `kind`
+  (need | want | saving) ← pro 50/30/20
+- **Tag** + **TransactionTag** (relação N:N)
+- **CategorizationRule** — `id`, `matcher`, `categoryId`, `priority`
+
+### Entidades — Fase 2 (investimentos; desenho agora, construir depois)
+
+- **Asset** — `id`, `ticker` (ex.: `MXRF11`), `kind` (fii | stock | etf), `name`
+- **InvestmentTransaction** — `id`, `assetId`, `accountId`, `date`, `kind`
+  (buy | sell), `quantity`, `unitPriceCents` → posição é **derivada**
+- **Quote** — `id`, `assetId`, `date`, `closeCents` (série temporal local)
+- **Dividend** — `id`, `assetId`, `exDate`, `payDate`, `perShareCents`
+
+### Fase 4
+
+- **Rule** (alertas) — desenhar quando chegar lá.
+
+---
 
 ## 5. UI & Design System 🟡
 
