@@ -40,17 +40,21 @@ depender 100% do trabalho. **Uso próprio.**
 
 ## Roadmap por fases (fatias verticais)
 
-- **Fase 0** — Importar arquivo OFX do Inter → gravar no SQLite → listar
-  transações + 1 gráfico de "gasto por mês". Sem API externa, sem login.
-- **Fase 1** — Cotações de FII via [brapi.dev](https://brapi.dev) para valorizar
-  a carteira e plotar evolução.
-- **Fase 2** — Camada de análise descritiva (médias móveis, inclinação por
-  regressão, drawdown, tendência de dividend yield).
-- **Fase 3** — Motor de regras: alertas que eu defino ("avise se eu sair da
+Resumo — escopo funcional completo, com prioridades MoSCoW, em
+[`docs/escopo.md`](docs/escopo.md).
+
+- **Fase 0** — Importar OFX/CSV do Inter + lançamento manual → categorizar →
+  dashboard de gasto por mês/categoria.
+- **Fase 1** — Fluxo de caixa & **taxa de poupança** + contas/patrimônio + meta
+  de poupança ("pay yourself first").
+- **Fase 2** — Investimentos: posições (FIIs), cotações via
+  [brapi.dev](https://brapi.dev), valor da carteira e **dividendos** (renda passiva).
+- **Fase 3** — Análise descritiva & tendências (trajetória de patrimônio/renda;
+  médias, inclinação, drawdown — nunca previsão).
+- **Fase 4** — Motor de regras: alertas que eu defino ("avise se eu sair da
   alocação alvo").
-- **Futuro** — Open Finance via Pluggy (saldo/posições automáticos); deploy em
-  EC2 + Tailscale (VPN, sem porta pública); acesso pelo celular via web
-  responsiva.
+- **Futuro** — Open Finance via Pluggy; deploy em EC2 + Tailscale (VPN, sem porta
+  pública); acesso pelo celular via web responsiva.
 
 ## Dados sensíveis — nunca commitar
 
