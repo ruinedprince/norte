@@ -1,8 +1,15 @@
 import { formatBRL } from "@/core/domain/money";
 import { AssetForm } from "@/modules/investments/components/asset-form";
+import { DividendForm } from "@/modules/investments/components/dividend-form";
 import { InvestmentTransactionForm } from "@/modules/investments/components/investment-transaction-form";
+import { PassiveIncomeChart } from "@/modules/investments/components/passive-income-chart";
 import { QuotesCard } from "@/modules/investments/components/quotes-card";
-import { listAssets, listValuedPositions } from "@/modules/investments/repository";
+import {
+  listAssets,
+  listDividends,
+  listValuedPositions,
+  monthlyPassiveIncome,
+} from "@/modules/investments/repository";
 import {
   Card,
   CardContent,
@@ -18,6 +25,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { formatTxDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 // Always reflect the latest database state.
@@ -27,7 +35,12 @@ const KIND_LABELS: Record<string, string> = { fii: "FII", stock: "Ação", etf: 
 const dash = (cents: number | null) => (cents == null ? "—" : formatBRL(cents));
 
 export default async function InvestmentsPage() {
-  const [positions, assets] = await Promise.all([listValuedPositions(), listAssets()]);
+  const [positions, assets, passiveIncome, dividends] = await Promise.all([
+    listValuedPositions(),
+    listAssets(),
+    monthlyPassiveIncome(),
+    listDividends(),
+  ]);
   const held = positions.filter((p) => p.quantity > 0);
   const investedTotal = held.reduce((sum, p) => sum + p.investedCents, 0);
   const quoted = held.filter((p) => p.marketValueCents != null);
@@ -144,6 +157,51 @@ export default async function InvestmentsPage() {
                 ))}
               </TableBody>
             </Table>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Renda passiva por mês</CardTitle>
+          <CardDescription>Dividendos recebidos, pelo mês de pagamento.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <PassiveIncomeChart data={passiveIncome} />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Dividendos</CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-5">
+          <DividendForm assets={assets.map((a) => ({ id: a.id, ticker: a.ticker }))} />
+          {dividends.length > 0 && (
+            <ul className="divide-y divide-border">
+              {dividends.map((dividend) => (
+                <li
+                  key={dividend.id}
+                  className="flex items-center justify-between gap-3 py-2.5 text-sm"
+                >
+                  <div>
+                    <span className="font-medium">{dividend.ticker}</span>
+                    <span className="text-muted-foreground">
+                      {" "}
+                      · pago em {formatTxDate(dividend.payDate)}
+                    </span>
+                  </div>
+                  <div className="text-right tabular-nums">
+                    <span className="text-muted-foreground">
+                      {formatBRL(dividend.perShareCents)}/cota × {dividend.quantityAtPay}
+                    </span>
+                    <span className="ml-2 font-medium text-positive">
+                      {formatBRL(dividend.incomeCents)}
+                    </span>
+                  </div>
+                </li>
+              ))}
+            </ul>
           )}
         </CardContent>
       </Card>
