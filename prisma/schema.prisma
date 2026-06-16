@@ -84,6 +84,12 @@ model TransactionTag {
   @@id([transactionId, tagId])
 }
 
+/// Simple key/value app settings (e.g. the monthly savings goal). One row per key.
+model Setting {
+  key   String @id
+  value String
+}
+
 /// Auto-categorization rule (escopo Fase 0 [Should]): when `matcher` is found
 /// in a transaction description, apply `categoryId`. Highest `priority` wins.
 model CategorizationRule {
