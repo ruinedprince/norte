@@ -19,7 +19,7 @@ decidir qualquer coisa de arquitetura ou escopo.
 - **Filosofia:** YAGNI; medir antes de otimizar; análise **descritiva, nunca preditiva**;
   banco e segredos nunca no git.
 
-## Estado atual (Fase 0)
+## Estado atual
 
 - Scaffold pronto: Next 16 + TypeScript + Tailwind v4 + App Router (`src/`).
 - Estrutura modular: `src/modules/{transactions,categories,quotes,analysis,rules}`,
@@ -39,14 +39,18 @@ decidir qualquer coisa de arquitetura ou escopo.
   na tela de Transações — conta + direção (saída/entrada) + valor + data + categoria opcional,
   `source: "manual"` com `dedupKey` único (entradas idênticas não dedupam). **Fecha a Fase 0**
   (todos os `[Must]` + o `[Should]`). 24 testes verdes.
+- **Fatia `savings-rate` entregue** (Fase 1, em `dev` e `main`): `monthlyCashFlow` (receita ×
+  despesa por mês) + **taxa de poupança** mensal (`savingsRate` no core — `null` sem receita,
+  negativa = alerta) → Painel reorientado com a taxa de poupança em destaque + gráfico
+  receita × despesa. 27 testes verdes.
 - **Cuidado de versão:** Next 16 e Prisma 7 trazem breaking changes vs. training — Prisma 7
   exige driver adapter (sem `new PrismaClient()` puro). Ver `AGENTS.md`.
 
 ## Próxima fatia
 
-**Fase 1 — fluxo de caixa & taxa de poupança.** Candidatos (proponho → você corta/adiciona):
-receita × despesa no tempo, **taxa de poupança mensal** (número-âncora do projeto) e
-**contas & saldos** (semente do patrimônio). Decidir o recorte antes de abrir a `feature/*`.
+Continua a **Fase 1**. Candidatos (proponho → você corta/adiciona): **contas & saldos**
+(semente do patrimônio — saldo por conta no tempo) e **meta de poupança** (`[Should]` —
+"pay yourself first" + acompanhamento vs. a taxa atual). Decidir o recorte antes da `feature/*`.
 
 ## Rodar
 
