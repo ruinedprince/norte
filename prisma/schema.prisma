@@ -143,6 +143,19 @@ model Quote {
   @@index([assetId])
 }
 
+/// Fase 4 — a user-defined alert rule (escopo §4). `threshold` is a ratio for
+/// percent metrics (savingsRate, portfolioDY) and integer cents for currency
+/// metrics (monthlySpend, netWorthChange3m); the metric defines the unit.
+model Rule {
+  id         String   @id @default(cuid())
+  name       String
+  metric     String // savingsRate | portfolioDY | monthlySpend | netWorthChange3m
+  comparator String // below | above
+  threshold  Float
+  enabled    Boolean  @default(true)
+  createdAt  DateTime @default(now())
+}
+
 /// Fase 2 — a dividend/JCP payment per share (escopo §4). Monthly passive income
 /// is derived from these times the quantity held at the pay date.
 model Dividend {
