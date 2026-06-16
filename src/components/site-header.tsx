@@ -10,6 +10,7 @@ const NAV = [
   { href: "/transactions", label: "Transações" },
   { href: "/categories", label: "Categorias" },
   { href: "/accounts", label: "Contas" },
+  { href: "/investments", label: "Investimentos" },
 ];
 
 export function SiteHeader() {
