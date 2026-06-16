@@ -1,4 +1,5 @@
 import { formatBRL } from "@/core/domain/money";
+import { AllocationCard } from "@/modules/investments/components/allocation-card";
 import { AssetForm } from "@/modules/investments/components/asset-form";
 import { DividendForm } from "@/modules/investments/components/dividend-form";
 import { InvestmentTransactionForm } from "@/modules/investments/components/investment-transaction-form";
@@ -9,6 +10,8 @@ import {
   listDividends,
   listValuedPositions,
   monthlyPassiveIncome,
+  portfolioAllocation,
+  portfolioDividendYield,
 } from "@/modules/investments/repository";
 import {
   Card,
@@ -35,12 +38,15 @@ const KIND_LABELS: Record<string, string> = { fii: "FII", stock: "Ação", etf: 
 const dash = (cents: number | null) => (cents == null ? "—" : formatBRL(cents));
 
 export default async function InvestmentsPage() {
-  const [positions, assets, passiveIncome, dividends] = await Promise.all([
-    listValuedPositions(),
-    listAssets(),
-    monthlyPassiveIncome(),
-    listDividends(),
-  ]);
+  const [positions, assets, passiveIncome, dividends, allocation, dy] =
+    await Promise.all([
+      listValuedPositions(),
+      listAssets(),
+      monthlyPassiveIncome(),
+      listDividends(),
+      portfolioAllocation(),
+      portfolioDividendYield(),
+    ]);
   const held = positions.filter((p) => p.quantity > 0);
   const investedTotal = held.reduce((sum, p) => sum + p.investedCents, 0);
   const quoted = held.filter((p) => p.marketValueCents != null);
@@ -158,6 +164,16 @@ export default async function InvestmentsPage() {
               </TableBody>
             </Table>
           )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Alocação & rendimento</CardTitle>
+          <CardDescription>Distribuição da carteira e dividend yield.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <AllocationCard allocation={allocation} dy={dy} />
         </CardContent>
       </Card>
 
