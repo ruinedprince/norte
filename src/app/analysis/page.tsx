@@ -1,20 +1,22 @@
 import { formatBRL } from "@/core/domain/money";
+import { IncomeMixChart } from "@/modules/analysis/components/income-mix-chart";
 import { NetWorthChart } from "@/modules/analysis/components/net-worth-chart";
-import { netWorthAnalysis } from "@/modules/analysis/repository";
+import { incomeMix, netWorthAnalysis } from "@/modules/analysis/repository";
 import {
   Card,
   CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { formatPercent } from "@/lib/format";
+import { formatPercent, formatPercent1 } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 // Always reflect the latest database state.
 export const dynamic = "force-dynamic";
 
 export default async function AnalysisPage() {
-  const nw = await netWorthAnalysis();
+  const [nw, mix] = await Promise.all([netWorthAnalysis(), incomeMix()]);
   const change = nw.change3mCents;
 
   return (
@@ -84,6 +86,28 @@ export default async function AnalysisPage() {
         </CardHeader>
         <CardContent>
           <NetWorthChart data={nw.series} />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Renda: ativa × dividendos</CardTitle>
+          <CardDescription>Quanto da sua renda já vem de dividendos.</CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-4">
+          <div>
+            <p className="text-sm text-muted-foreground">
+              Dividendos na renda (12 meses)
+            </p>
+            <p className="font-serif text-3xl tabular-nums text-positive">
+              {mix.share12m != null ? formatPercent1(mix.share12m) : "—"}
+            </p>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              {formatBRL(mix.passive12mCents)} de{" "}
+              {formatBRL(mix.active12mCents + mix.passive12mCents)} em 12 meses
+            </p>
+          </div>
+          <IncomeMixChart data={mix.series} />
         </CardContent>
       </Card>
     </div>
