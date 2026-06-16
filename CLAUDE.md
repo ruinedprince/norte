@@ -43,14 +43,21 @@ decidir qualquer coisa de arquitetura ou escopo.
   despesa por mês) + **taxa de poupança** mensal (`savingsRate` no core — `null` sem receita,
   negativa = alerta) → Painel reorientado com a taxa de poupança em destaque + gráfico
   receita × despesa. 27 testes verdes.
+- **Fatias `accounts-balances` + `savings-goal` + `budget-503020` entregues** (Fase 1, em `dev`
+  e `main`): **Contas & saldos** (`/accounts`, saldo = saldo inicial + lançamentos, patrimônio
+  total), **meta de poupança** (`Setting` key/value; meta vs. taxa atual no Painel) e **50/30/20
+  light** (split need/want/poupança do mês vs. alvos). **Fecha a Fase 1** (`[Must]` + `[Should]`
+  + `[Could]`). 30 testes verdes.
 - **Cuidado de versão:** Next 16 e Prisma 7 trazem breaking changes vs. training — Prisma 7
-  exige driver adapter (sem `new PrismaClient()` puro). Ver `AGENTS.md`.
+  exige driver adapter (sem `new PrismaClient()` puro) e o `migrate dev` **não regenera** o
+  client (rodar `npx prisma generate` após mudar o schema). Ver `AGENTS.md`.
 
 ## Próxima fatia
 
-Continua a **Fase 1**. Candidatos (proponho → você corta/adiciona): **contas & saldos**
-(semente do patrimônio — saldo por conta no tempo) e **meta de poupança** (`[Should]` —
-"pay yourself first" + acompanhamento vs. a taxa atual). Decidir o recorte antes da `feature/*`.
+**Fase 2 — investimentos** (precisa da **brapi**). Candidatos (proponho → você corta/adiciona):
+cadastro de posições (FIIs/aportes), **cotações via brapi** → valor da carteira no tempo, e
+**dividendos** (calendário + renda passiva mensal). Token brapi grátis no `.env.local` (escopo §6).
+Decidir o recorte antes da `feature/*`.
 
 ## Rodar
 
