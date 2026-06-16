@@ -210,6 +210,50 @@ export async function monthlyCashFlow(): Promise<CashFlowPoint[]> {
     }));
 }
 
+export interface BudgetSplit {
+  month: string;
+  incomeCents: number;
+  needsCents: number;
+  wantsCents: number;
+  /** income − total expense (net). */
+  savedCents: number;
+}
+
+/**
+ * 50/30/20 split for the most recent month (escopo Fase 1 [Could]): how much of
+ * the income went to need-kind vs want-kind categories, and how much was saved
+ * (net). Descriptive — uncategorized spend is simply not counted as need/want.
+ */
+export async function latestMonthBudgetSplit(): Promise<BudgetSplit | null> {
+  const flows = await monthlyCashFlow();
+  const latest = flows.at(-1);
+  if (!latest) return null;
+
+  const [year, month] = latest.month.split("-").map(Number);
+  const start = new Date(Date.UTC(year, month - 1, 1));
+  const end = new Date(Date.UTC(year, month, 1));
+  const rows = await prisma.transaction.findMany({
+    where: { amountCents: { lt: 0 }, date: { gte: start, lt: end } },
+    select: { amountCents: true, category: { select: { kind: true } } },
+  });
+
+  let needsCents = 0;
+  let wantsCents = 0;
+  for (const row of rows) {
+    const amount = Math.abs(row.amountCents);
+    if (row.category?.kind === "need") needsCents += amount;
+    else if (row.category?.kind === "want") wantsCents += amount;
+  }
+
+  return {
+    month: latest.month,
+    incomeCents: latest.incomeCents,
+    needsCents,
+    wantsCents,
+    savedCents: latest.netCents,
+  };
+}
+
 export interface CategorySpendPoint {
   categoryId: string | null;
   /** null for the uncategorized bucket; the UI labels it. */
