@@ -37,6 +37,11 @@ export function formatPercent(ratio: number): string {
   return `${Math.round(ratio * 100)}%`;
 }
 
+/** Like formatPercent but with one decimal, e.g. 0.085 → "8,5%" (for DY). */
+export function formatPercent1(ratio: number): string {
+  return `${(ratio * 100).toFixed(1).replace(".", ",")}%`;
+}
+
 /** Cents → an editable amount string like "1234,56" (comma decimal, no symbol),
  *  round-trips with parseBRLToCents. */
 export function centsToAmountInput(cents: number): string {
