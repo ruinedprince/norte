@@ -12,6 +12,8 @@ import {
   spendByCategory,
 } from "@/modules/transactions/repository";
 import { TransactionsTable } from "@/modules/transactions/components/transactions-table";
+import { SavingsGoalCard } from "@/modules/settings/components/savings-goal-card";
+import { getSavingsGoalRate } from "@/modules/settings/repository";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -26,13 +28,15 @@ import { formatMonthLabel, formatPercent } from "@/lib/format";
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
-  const [spending, cashFlow, byCategory, recent, stats] = await Promise.all([
-    monthlySpending(),
-    monthlyCashFlow(),
-    spendByCategory(),
-    listTransactions(8),
-    getStats(),
-  ]);
+  const [spending, cashFlow, byCategory, recent, stats, goalRate] =
+    await Promise.all([
+      monthlySpending(),
+      monthlyCashFlow(),
+      spendByCategory(),
+      listTransactions(8),
+      getStats(),
+      getSavingsGoalRate(),
+    ]);
 
   const latestFlow = cashFlow.at(-1);
   const rateColor =
@@ -113,6 +117,21 @@ export default async function DashboardPage() {
               </CardContent>
             </Card>
           </section>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Meta de poupança</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <SavingsGoalCard
+                goalRate={goalRate}
+                latestRate={latestFlow?.savingsRate ?? null}
+                latestMonthLabel={
+                  latestFlow ? formatMonthLabel(latestFlow.month) : null
+                }
+              />
+            </CardContent>
+          </Card>
 
           <Card>
             <CardHeader>
