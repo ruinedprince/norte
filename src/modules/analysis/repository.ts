@@ -1,3 +1,4 @@
+import { passiveShare } from "@/core/domain/cashflow";
 import {
   maxDrawdown,
   netWorthChange,
@@ -5,6 +6,8 @@ import {
   type InvTx,
   type NetWorthPoint,
 } from "@/core/domain/networth";
+import { monthlyPassiveIncome } from "@/modules/investments/repository";
+import { monthlyCashFlow } from "@/modules/transactions/repository";
 import { prisma } from "@/lib/prisma";
 
 /** Months from the earliest activity through the current month, capped to the
@@ -66,5 +69,54 @@ export async function netWorthAnalysis(): Promise<NetWorthAnalysis> {
     currentCents: series.at(-1)?.netWorthCents ?? 0,
     change3mCents: netWorthChange(series, 3),
     drawdown: maxDrawdown(series),
+  };
+}
+
+export interface IncomeMixPoint {
+  month: string;
+  activeCents: number;
+  passiveCents: number;
+  passiveShare: number | null;
+}
+
+export interface IncomeMix {
+  series: IncomeMixPoint[];
+  active12mCents: number;
+  passive12mCents: number;
+  share12m: number | null;
+}
+
+/**
+ * Active (transactions income) vs passive (dividends) per month, plus the
+ * trailing-12-month share of income that is passive (escopo §3 Fase 3).
+ */
+export async function incomeMix(): Promise<IncomeMix> {
+  const [cashFlow, passive] = await Promise.all([
+    monthlyCashFlow(),
+    monthlyPassiveIncome(),
+  ]);
+  const activeByMonth = new Map(cashFlow.map((c) => [c.month, c.incomeCents]));
+  const passiveByMonth = new Map(passive.map((p) => [p.month, p.incomeCents]));
+  const months = [...new Set([...activeByMonth.keys(), ...passiveByMonth.keys()])].sort();
+
+  const series: IncomeMixPoint[] = months.map((month) => {
+    const activeCents = activeByMonth.get(month) ?? 0;
+    const passiveCents = passiveByMonth.get(month) ?? 0;
+    return {
+      month,
+      activeCents,
+      passiveCents,
+      passiveShare: passiveShare(activeCents, passiveCents),
+    };
+  });
+
+  const last12 = series.slice(-12);
+  const active12mCents = last12.reduce((sum, p) => sum + p.activeCents, 0);
+  const passive12mCents = last12.reduce((sum, p) => sum + p.passiveCents, 0);
+  return {
+    series,
+    active12mCents,
+    passive12mCents,
+    share12m: passiveShare(active12mCents, passive12mCents),
   };
 }

@@ -12,3 +12,16 @@ export function savingsRate(
   if (incomeCents <= 0) return null;
   return (incomeCents - expenseCents) / incomeCents;
 }
+
+/**
+ * Share of income that is passive (dividends) vs active: passive / (active +
+ * passive). Returns null when there is no income. The project's north-star
+ * question — "quanto da minha renda já vem de dividendos" (escopo §3).
+ */
+export function passiveShare(
+  activeCents: number,
+  passiveCents: number,
+): number | null {
+  const total = activeCents + passiveCents;
+  return total > 0 ? passiveCents / total : null;
+}

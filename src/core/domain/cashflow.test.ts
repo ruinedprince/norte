@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { savingsRate } from "./cashflow";
+import { passiveShare, savingsRate } from "./cashflow";
 
 describe("savingsRate", () => {
   it("computes (income - expense) / income", () => {
@@ -16,5 +16,17 @@ describe("savingsRate", () => {
     expect(savingsRate(100000, 0)).toBe(1);
     expect(savingsRate(0, 5000)).toBeNull();
     expect(savingsRate(-100, 50)).toBeNull();
+  });
+});
+
+describe("passiveShare", () => {
+  it("is passive / (active + passive)", () => {
+    expect(passiveShare(80000, 20000)).toBeCloseTo(0.2, 10);
+    expect(passiveShare(0, 5000)).toBe(1);
+    expect(passiveShare(100000, 0)).toBe(0);
+  });
+
+  it("is null with no income at all", () => {
+    expect(passiveShare(0, 0)).toBeNull();
   });
 });
