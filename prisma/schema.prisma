@@ -1,0 +1,92 @@
+// Norte — Phase 0 data model (see docs/escopo.md §4).
+// Code/schema/identifiers in English; only the UI is in Portuguese.
+// Money is always an integer number of cents (amountCents), never a float.
+// SQLite has no native enums, so enum-like fields are String and the allowed
+// values are enforced by the domain layer (src/core/domain).
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+/// A place money lives. For OFX imports `externalId` holds the bank-provided
+/// account identifier (e.g. "bankId:acctId") so re-imports find the same row.
+model Account {
+  id           String        @id @default(cuid())
+  name         String
+  type         String // checking | savings | cash | brokerage
+  currency     String        @default("BRL")
+  externalId   String?       @unique
+  createdAt    DateTime      @default(now())
+  transactions Transaction[]
+}
+
+/// Single-entry: a transaction has an account + signed amount + type.
+/// A transfer is a linked pair sharing `transferGroupId` so it is not
+/// double-counted (see escopo §4).
+model Transaction {
+  id              String           @id @default(cuid())
+  accountId       String
+  account         Account          @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  date            DateTime
+  amountCents     Int // signed: negative = expense, positive = income
+  type            String // income | expense | transfer
+  categoryId      String?
+  category        Category?        @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  description     String
+  source          String // ofx | manual
+  externalId      String? // raw FITID from the OFX statement, when present
+  // Canonical idempotency key per account: the FITID when available, otherwise
+  // a hash of (date + amount + memo). Unique with accountId so re-imports are
+  // idempotent (see escopo §6 dedup rule).
+  dedupKey        String
+  transferGroupId String?
+  createdAt       DateTime         @default(now())
+  tags            TransactionTag[]
+
+  @@unique([accountId, dedupKey])
+  @@index([date])
+  @@index([categoryId])
+}
+
+/// Simple category hierarchy. `kind` feeds the 50/30/20-light view later.
+model Category {
+  id           String               @id @default(cuid())
+  name         String
+  parentId     String?
+  parent       Category?            @relation("CategoryTree", fields: [parentId], references: [id], onDelete: SetNull)
+  children     Category[]           @relation("CategoryTree")
+  kind         String // need | want | saving
+  transactions Transaction[]
+  rules        CategorizationRule[]
+}
+
+model Tag {
+  id           String           @id @default(cuid())
+  name         String           @unique
+  transactions TransactionTag[]
+}
+
+/// N:N between Transaction and Tag.
+model TransactionTag {
+  transactionId String
+  tagId         String
+  transaction   Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  tag           Tag         @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([transactionId, tagId])
+}
+
+/// Auto-categorization rule (escopo Fase 0 [Should]): when `matcher` is found
+/// in a transaction description, apply `categoryId`. Highest `priority` wins.
+model CategorizationRule {
+  id         String   @id @default(cuid())
+  matcher    String
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  priority   Int      @default(0)
+}
