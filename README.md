@@ -4,7 +4,9 @@ App pessoal de finanças com leitura de tendências — a bússola que registra 
 gastos, minhas economias e meus investimentos, e me ajuda a navegar rumo a não
 depender 100% do trabalho. **Uso próprio.**
 
-> Status: dia 0 — repositório recém-criado. Nenhum código de aplicação ainda.
+> Status: scaffold da Fase 0 pronto (Next 16 + Tailwind + estrutura modular +
+> landing). Próximo: `feature/ofx-import`. Orientação rápida no `CLAUDE.md`;
+> decisões completas em `docs/escopo.md`.
 
 ## Princípios (as decisões que valem mais que o código)
 
