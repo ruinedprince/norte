@@ -59,6 +59,10 @@ decidir qualquer coisa de arquitetura ou escopo.
   44 testes verdes. *Limitação:* aporte de investimento ainda não debita o caixa (sem link
   aporte↔conta — fica pro pairing de transferências, adiado), então o patrimônio pode contar o
   dinheiro do aporte duas vezes.
+- **Fase 4 (motor de regras) entregue** (em `dev` e `main`): `/rules` — regras que o usuário
+  define sobre **taxa de poupança / DY / gasto do mês / variação do patrimônio** (comparador +
+  limiar), com painel de **alertas** (`evaluateRules` no core). **Fecha o escopo MoSCoW
+  (Fases 0–4).** 48 testes verdes.
 - **Cuidado de versão:** Next 16 e Prisma 7 trazem breaking changes vs. training — Prisma 7
   exige driver adapter (sem `new PrismaClient()` puro) e o `migrate dev` **não regenera** o
   client (rodar `npx prisma generate` após mudar o schema; e **reiniciar o `next dev`** após
@@ -66,10 +70,12 @@ decidir qualquer coisa de arquitetura ou escopo.
 
 ## Próxima fatia
 
-**Fase 4 — motor de regras (o "guia").** Candidatos (proponho → você corta/adiciona): alertas por
-regras que o usuário define (ex.: "fora da alocação alvo", "DY caiu de X", "taxa de poupança abaixo
-da meta"). Modelo `Rule` a desenhar (escopo §4). Pendências: `[Could]` P/VP + indicadores de FII
-(Fase 2) e o link aporte↔caixa (patrimônio). Decidir o recorte antes da `feature/*`.
+**Escopo MoSCoW (Fases 0–4) completo.** O que sobra são itens adiados de propósito:
+- Produto: link **aporte↔caixa** (pairing de transferências); `[Could]` **P/VP + indicadores de
+  FII** (Fase 2); os `Won't` do escopo §3 (Open Finance/Pluggy, previsão/IA, Monte Carlo, etc.).
+- Infra adiada (escopo §2/§7): deploy **EC2 + Tailscale**, auth/HTTPS, cripto dos tokens, backup.
+
+Próxima fatia: você escolhe — polish/refino, um dos adiados, ou começar o deploy. Decidir antes da `feature/*`.
 
 ## Rodar
 
