@@ -53,6 +53,12 @@ decidir qualquer coisa de arquitetura ou escopo.
   entrada manual; offline mantém a última), **valor da carteira** + resultado, **dividendos** +
   **renda passiva mensal**, e **alocação + DY**. brapi requer `BRAPI_TOKEN` no `.env.local` (sem
   token, preço manual). `[Could]` P/VP + indicadores de FII **adiado**. 40 testes verdes.
+- **Fase 3 (análise & tendências) entregue** (em `dev` e `main`): `/analysis` — **patrimônio no
+  tempo** (caixa + investimentos a mercado, `netWorthSeries` no core), tendências (variação 3m +
+  **drawdown**) e **renda ativa × dividendos** (fatia da renda vinda de dividendos, `passiveShare`).
+  44 testes verdes. *Limitação:* aporte de investimento ainda não debita o caixa (sem link
+  aporte↔conta — fica pro pairing de transferências, adiado), então o patrimônio pode contar o
+  dinheiro do aporte duas vezes.
 - **Cuidado de versão:** Next 16 e Prisma 7 trazem breaking changes vs. training — Prisma 7
   exige driver adapter (sem `new PrismaClient()` puro) e o `migrate dev` **não regenera** o
   client (rodar `npx prisma generate` após mudar o schema; e **reiniciar o `next dev`** após
@@ -60,10 +66,10 @@ decidir qualquer coisa de arquitetura ou escopo.
 
 ## Próxima fatia
 
-**Fase 3 — análise descritiva & tendências.** Candidatos (proponho → você corta/adiciona):
-trajetória de patrimônio e de renda passiva no tempo, tendências (médias, inclinação, drawdown —
-descritivo, nunca preditivo) e "quanto da renda já vem de dividendos". Pendência da Fase 2:
-`[Could]` P/VP + indicadores de FII. Decidir o recorte antes da `feature/*`.
+**Fase 4 — motor de regras (o "guia").** Candidatos (proponho → você corta/adiciona): alertas por
+regras que o usuário define (ex.: "fora da alocação alvo", "DY caiu de X", "taxa de poupança abaixo
+da meta"). Modelo `Rule` a desenhar (escopo §4). Pendências: `[Could]` P/VP + indicadores de FII
+(Fase 2) e o link aporte↔caixa (patrimônio). Decidir o recorte antes da `feature/*`.
 
 ## Rodar
 
