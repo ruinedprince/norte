@@ -35,14 +35,18 @@ decidir qualquer coisa de arquitetura ou escopo.
   `kind` need/want/saving), **auto-categorização** por regras aplicadas no import + ação de
   re-aplicar nas não categorizadas, e gráfico **"gasto por categoria"** no Painel — completa o
   dashboard `[Must]` e o `[Should]` da Fase 0. Suíte agora com 21 testes verdes.
+- **Fatia `manual-entry` entregue** (em `dev` e `main`): lançamento manual (dinheiro/cartão/Pix)
+  na tela de Transações — conta + direção (saída/entrada) + valor + data + categoria opcional,
+  `source: "manual"` com `dedupKey` único (entradas idênticas não dedupam). **Fecha a Fase 0**
+  (todos os `[Must]` + o `[Should]`). 24 testes verdes.
 - **Cuidado de versão:** Next 16 e Prisma 7 trazem breaking changes vs. training — Prisma 7
   exige driver adapter (sem `new PrismaClient()` puro). Ver `AGENTS.md`.
 
 ## Próxima fatia
 
-A definir (proponho → você corta/adiciona). Falta um `[Must]` da Fase 0: **lançamento manual**
-(transações sem OFX — dinheiro/cartão). Depois, **Fase 1**: receita × despesa no tempo e a
-**taxa de poupança** (número-âncora do projeto). Decidir antes de abrir a `feature/*`.
+**Fase 1 — fluxo de caixa & taxa de poupança.** Candidatos (proponho → você corta/adiciona):
+receita × despesa no tempo, **taxa de poupança mensal** (número-âncora do projeto) e
+**contas & saldos** (semente do patrimônio). Decidir o recorte antes de abrir a `feature/*`.
 
 ## Rodar
 
