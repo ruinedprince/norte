@@ -1,11 +1,13 @@
 import Link from "next/link";
 
 import { formatBRL } from "@/core/domain/money";
+import { BudgetSplitCard } from "@/modules/analysis/components/budget-split-card";
 import { CashFlowChart } from "@/modules/analysis/components/cash-flow-chart";
 import { CategorySpendChart } from "@/modules/analysis/components/category-spend-chart";
 import { MonthlySpendChart } from "@/modules/analysis/components/monthly-spend-chart";
 import {
   getStats,
+  latestMonthBudgetSplit,
   listTransactions,
   monthlyCashFlow,
   monthlySpending,
@@ -28,7 +30,7 @@ import { formatMonthLabel, formatPercent } from "@/lib/format";
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
-  const [spending, cashFlow, byCategory, recent, stats, goalRate] =
+  const [spending, cashFlow, byCategory, recent, stats, goalRate, budgetSplit] =
     await Promise.all([
       monthlySpending(),
       monthlyCashFlow(),
@@ -36,6 +38,7 @@ export default async function DashboardPage() {
       listTransactions(8),
       getStats(),
       getSavingsGoalRate(),
+      latestMonthBudgetSplit(),
     ]);
 
   const latestFlow = cashFlow.at(-1);
@@ -118,20 +121,34 @@ export default async function DashboardPage() {
             </Card>
           </section>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Meta de poupança</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <SavingsGoalCard
-                goalRate={goalRate}
-                latestRate={latestFlow?.savingsRate ?? null}
-                latestMonthLabel={
-                  latestFlow ? formatMonthLabel(latestFlow.month) : null
-                }
-              />
-            </CardContent>
-          </Card>
+          <div className="grid gap-6 lg:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle>Meta de poupança</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <SavingsGoalCard
+                  goalRate={goalRate}
+                  latestRate={latestFlow?.savingsRate ?? null}
+                  latestMonthLabel={
+                    latestFlow ? formatMonthLabel(latestFlow.month) : null
+                  }
+                />
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>
+                  50/30/20 ·{" "}
+                  {latestFlow ? formatMonthLabel(latestFlow.month) : "—"}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <BudgetSplitCard split={budgetSplit} />
+              </CardContent>
+            </Card>
+          </div>
 
           <Card>
             <CardHeader>
