@@ -36,3 +36,9 @@ export function formatTxDate(date: Date): string {
 export function formatPercent(ratio: number): string {
   return `${Math.round(ratio * 100)}%`;
 }
+
+/** Cents → an editable amount string like "1234,56" (comma decimal, no symbol),
+ *  round-trips with parseBRLToCents. */
+export function centsToAmountInput(cents: number): string {
+  return (cents / 100).toFixed(2).replace(".", ",");
+}

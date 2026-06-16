@@ -9,6 +9,7 @@ const NAV = [
   { href: "/", label: "Painel" },
   { href: "/transactions", label: "Transações" },
   { href: "/categories", label: "Categorias" },
+  { href: "/accounts", label: "Contas" },
 ];
 
 export function SiteHeader() {
