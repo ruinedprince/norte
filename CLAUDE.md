@@ -48,16 +48,22 @@ decidir qualquer coisa de arquitetura ou escopo.
   total), **meta de poupança** (`Setting` key/value; meta vs. taxa atual no Painel) e **50/30/20
   light** (split need/want/poupança do mês vs. alvos). **Fecha a Fase 1** (`[Must]` + `[Should]`
   + `[Could]`). 30 testes verdes.
+- **Fase 2 (investimentos) entregue** (em `dev` e `main`): `/investments` — **posições** (custo
+  médio derivado de aportes/vendas), **cotações** atrás da porta `QuoteProvider` (adapter brapi +
+  entrada manual; offline mantém a última), **valor da carteira** + resultado, **dividendos** +
+  **renda passiva mensal**, e **alocação + DY**. brapi requer `BRAPI_TOKEN` no `.env.local` (sem
+  token, preço manual). `[Could]` P/VP + indicadores de FII **adiado**. 40 testes verdes.
 - **Cuidado de versão:** Next 16 e Prisma 7 trazem breaking changes vs. training — Prisma 7
   exige driver adapter (sem `new PrismaClient()` puro) e o `migrate dev` **não regenera** o
-  client (rodar `npx prisma generate` após mudar o schema). Ver `AGENTS.md`.
+  client (rodar `npx prisma generate` após mudar o schema; e **reiniciar o `next dev`** após
+  gerar — servidor reusado mantém client antigo em memória). Ver `AGENTS.md`.
 
 ## Próxima fatia
 
-**Fase 2 — investimentos** (precisa da **brapi**). Candidatos (proponho → você corta/adiciona):
-cadastro de posições (FIIs/aportes), **cotações via brapi** → valor da carteira no tempo, e
-**dividendos** (calendário + renda passiva mensal). Token brapi grátis no `.env.local` (escopo §6).
-Decidir o recorte antes da `feature/*`.
+**Fase 3 — análise descritiva & tendências.** Candidatos (proponho → você corta/adiciona):
+trajetória de patrimônio e de renda passiva no tempo, tendências (médias, inclinação, drawdown —
+descritivo, nunca preditivo) e "quanto da renda já vem de dividendos". Pendência da Fase 2:
+`[Could]` P/VP + indicadores de FII. Decidir o recorte antes da `feature/*`.
 
 ## Rodar
 
