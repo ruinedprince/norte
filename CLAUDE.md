@@ -24,15 +24,22 @@ decidir qualquer coisa de arquitetura ou escopo.
 - Scaffold pronto: Next 16 + TypeScript + Tailwind v4 + App Router (`src/`).
 - Estrutura modular: `src/modules/{transactions,categories,quotes,analysis,rules}`,
   `src/core/domain`, `src/lib`.
-- `core/domain/money.ts` (centavos, `formatBRL`/`parseBRLToCents`) + landing page
-  (acento índigo, serif). `main` e `dev` estão no commit do scaffold.
+- `core/domain/money.ts` (centavos, `formatBRL`/`parseBRLToCents`).
+- **Fatia `ofx-import` entregue** (em `dev` e `main`): import OFX (1.x SGML + 2.x XML,
+  encoding Latin-1, dedup `(account+FITID)` idempotente, atrás da porta `ImportSource`)
+  → SQLite via **Prisma 7 + driver adapter `better-sqlite3`** (client gerado em
+  `src/generated/prisma`, gitignored) → Painel (`/`, gráfico de gasto/mês em Recharts)
+  e Transações (`/transactions`, import + lista) em **shadcn/ui** (paleta quente + índigo).
+  17 testes verdes (`npm test`) + build limpo. OFX de exemplo em `docs/samples/`.
+- **Cuidado de versão:** Next 16 e Prisma 7 trazem breaking changes vs. training — Prisma 7
+  exige driver adapter (sem `new PrismaClient()` puro). Ver `AGENTS.md`.
 
 ## Próxima fatia
 
-`feature/ofx-import` — importar OFX (adapter `ImportSource`) → gravar no SQLite via Prisma →
-tela de transações + gráfico de gasto por mês. **shadcn/ui entra aqui**
-(`npx shadcn@latest init`). Requisitos do adapter OFX em `docs/escopo.md` (#6: SGML+XML,
-encoding Latin-1, dedup por `(account+FITID)` com fallback).
+A definir (proponho → você corta/adiciona). Candidatos diretos: **auto-categorização**
+(`[Should]` da Fase 0 — tabela `CategorizationRule` já existe, falta a regra + tela de
+Categorias) ou avançar pra **Fase 1** (receita × despesa, taxa de poupança). Decidir antes
+de abrir a `feature/*`.
 
 ## Rodar
 
