@@ -1,11 +1,13 @@
 import Link from "next/link";
 
 import { formatBRL } from "@/core/domain/money";
+import { CategorySpendChart } from "@/modules/analysis/components/category-spend-chart";
 import { MonthlySpendChart } from "@/modules/analysis/components/monthly-spend-chart";
 import {
   getStats,
   listTransactions,
   monthlySpending,
+  spendByCategory,
 } from "@/modules/transactions/repository";
 import { TransactionsTable } from "@/modules/transactions/components/transactions-table";
 import { Button } from "@/components/ui/button";
@@ -21,8 +23,9 @@ import { formatMonthLabel } from "@/lib/format";
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
-  const [spending, recent, stats] = await Promise.all([
+  const [spending, byCategory, recent, stats] = await Promise.all([
     monthlySpending(),
+    spendByCategory(),
     listTransactions(8),
     getStats(),
   ]);
@@ -91,14 +94,25 @@ export default async function DashboardPage() {
             </Card>
           </section>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Gasto por mês</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <MonthlySpendChart data={spending} />
-            </CardContent>
-          </Card>
+          <div className="grid gap-6 lg:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle>Gasto por mês</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <MonthlySpendChart data={spending} />
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Gasto por categoria</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <CategorySpendChart data={byCategory} />
+              </CardContent>
+            </Card>
+          </div>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">

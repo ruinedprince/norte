@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 const NAV = [
   { href: "/", label: "Painel" },
   { href: "/transactions", label: "Transações" },
+  { href: "/categories", label: "Categorias" },
 ];
 
 export function SiteHeader() {

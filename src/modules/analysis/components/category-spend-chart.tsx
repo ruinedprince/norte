@@ -4,6 +4,7 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
+  Cell,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -11,45 +12,52 @@ import {
 } from "recharts";
 
 import { formatBRL } from "@/core/domain/money";
-import { formatMonthLabel } from "@/lib/format";
 import { usePrefersReducedMotion } from "@/lib/use-prefers-reduced-motion";
 
-interface MonthlyPoint {
-  month: string;
+interface CategoryPoint {
+  categoryId: string | null;
+  name: string | null;
   spentCents: number;
 }
 
-export function MonthlySpendChart({ data }: { data: MonthlyPoint[] }) {
+export function CategorySpendChart({ data }: { data: CategoryPoint[] }) {
   const reducedMotion = usePrefersReducedMotion();
 
   if (data.length === 0) {
     return (
-      <div className="flex h-[280px] items-center justify-center text-sm text-muted-foreground">
+      <div className="flex h-[200px] items-center justify-center text-sm text-muted-foreground">
         Sem gastos para mostrar ainda.
       </div>
     );
   }
 
   const chartData = data.map((point) => ({
-    label: formatMonthLabel(point.month),
+    label: point.name ?? "Sem categoria",
     spentCents: point.spentCents,
+    uncategorized: point.categoryId === null,
   }));
+  const height = Math.max(160, chartData.length * 44 + 24);
 
   return (
-    <ResponsiveContainer width="100%" height={280}>
-      <BarChart data={chartData} margin={{ top: 8, right: 8, bottom: 0, left: 8 }}>
-        <CartesianGrid vertical={false} stroke="var(--border)" strokeDasharray="3 3" />
+    <ResponsiveContainer width="100%" height={height}>
+      <BarChart
+        layout="vertical"
+        data={chartData}
+        margin={{ top: 4, right: 16, bottom: 4, left: 8 }}
+      >
+        <CartesianGrid horizontal={false} stroke="var(--border)" strokeDasharray="3 3" />
         <XAxis
-          dataKey="label"
+          type="number"
+          tickFormatter={(value: number) => formatBRL(value)}
           tickLine={false}
           axisLine={false}
-          tickMargin={8}
           stroke="var(--muted-foreground)"
           fontSize={12}
         />
         <YAxis
-          width={88}
-          tickFormatter={(value: number) => formatBRL(value)}
+          type="category"
+          dataKey="label"
+          width={130}
           tickLine={false}
           axisLine={false}
           stroke="var(--muted-foreground)"
@@ -69,13 +77,19 @@ export function MonthlySpendChart({ data }: { data: MonthlyPoint[] }) {
         />
         <Bar
           dataKey="spentCents"
-          fill="var(--chart-1)"
-          radius={[6, 6, 0, 0]}
-          maxBarSize={56}
+          radius={[0, 6, 6, 0]}
+          maxBarSize={28}
           isAnimationActive={!reducedMotion}
           animationDuration={600}
           animationEasing="ease-out"
-        />
+        >
+          {chartData.map((point) => (
+            <Cell
+              key={point.label}
+              fill={point.uncategorized ? "var(--muted-foreground)" : "var(--chart-1)"}
+            />
+          ))}
+        </Bar>
       </BarChart>
     </ResponsiveContainer>
   );
