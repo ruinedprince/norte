@@ -31,15 +31,18 @@ decidir qualquer coisa de arquitetura ou escopo.
   `src/generated/prisma`, gitignored) → Painel (`/`, gráfico de gasto/mês em Recharts)
   e Transações (`/transactions`, import + lista) em **shadcn/ui** (paleta quente + índigo).
   17 testes verdes (`npm test`) + build limpo. OFX de exemplo em `docs/samples/`.
+- **Fatia `categories` entregue** (em `dev` e `main`): Categorias (CRUD + hierarquia simples,
+  `kind` need/want/saving), **auto-categorização** por regras aplicadas no import + ação de
+  re-aplicar nas não categorizadas, e gráfico **"gasto por categoria"** no Painel — completa o
+  dashboard `[Must]` e o `[Should]` da Fase 0. Suíte agora com 21 testes verdes.
 - **Cuidado de versão:** Next 16 e Prisma 7 trazem breaking changes vs. training — Prisma 7
   exige driver adapter (sem `new PrismaClient()` puro). Ver `AGENTS.md`.
 
 ## Próxima fatia
 
-A definir (proponho → você corta/adiciona). Candidatos diretos: **auto-categorização**
-(`[Should]` da Fase 0 — tabela `CategorizationRule` já existe, falta a regra + tela de
-Categorias) ou avançar pra **Fase 1** (receita × despesa, taxa de poupança). Decidir antes
-de abrir a `feature/*`.
+A definir (proponho → você corta/adiciona). Falta um `[Must]` da Fase 0: **lançamento manual**
+(transações sem OFX — dinheiro/cartão). Depois, **Fase 1**: receita × despesa no tempo e a
+**taxa de poupança** (número-âncora do projeto). Decidir antes de abrir a `feature/*`.
 
 ## Rodar
 
