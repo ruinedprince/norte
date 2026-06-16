@@ -85,6 +85,62 @@ export async function listTransactions(limit = 200) {
   });
 }
 
+/** All accounts, oldest first — for the manual-entry account picker. */
+export function listAccounts() {
+  return prisma.account.findMany({
+    orderBy: [{ createdAt: "asc" }],
+    select: { id: true, name: true, type: true },
+  });
+}
+
+/** Find-or-create the default cash wallet manual entries land in by default. */
+export function ensureDefaultCashAccount() {
+  return prisma.account.upsert({
+    where: { externalId: "manual:carteira" },
+    create: {
+      name: "Carteira",
+      type: "cash",
+      currency: "BRL",
+      externalId: "manual:carteira",
+    },
+    update: {},
+  });
+}
+
+/**
+ * Create a manual transaction (escopo §4, source = manual). Each manual entry is
+ * intentionally unique — a random dedupKey keeps two identical entries as
+ * distinct rows. When no category is given, the rules still get a chance.
+ */
+export async function createManualTransaction(input: {
+  accountId: string;
+  date: Date;
+  amountCents: number; // signed
+  description: string;
+  categoryId?: string | null;
+}) {
+  let categoryId = input.categoryId ?? null;
+  if (!categoryId && input.description) {
+    const rules = await prisma.categorizationRule.findMany({
+      select: { matcher: true, categoryId: true, priority: true },
+    });
+    categoryId = pickCategoryId(input.description, rules);
+  }
+
+  return prisma.transaction.create({
+    data: {
+      accountId: input.accountId,
+      date: input.date,
+      amountCents: input.amountCents,
+      type: typeFromAmount(input.amountCents),
+      description: input.description,
+      source: "manual",
+      dedupKey: `manual:${crypto.randomUUID()}`,
+      categoryId,
+    },
+  });
+}
+
 export interface MonthlySpendingPoint {
   /** Sortable "YYYY-MM" key, computed from the UTC date. */
   month: string;

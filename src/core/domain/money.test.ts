@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { formatBRL, parseBRLToCents } from "./money";
+import { formatBRL, parseBRLToCents, parseSignedCents } from "./money";
 
 // Currency formatting may use a non-breaking or narrow space before the value.
 const norm = (s: string) => s.replace(/[  ]/g, " ");
@@ -29,5 +29,18 @@ describe("parseBRLToCents", () => {
     for (const cents of [0, 5, 99, 10000, 123456, -5000]) {
       expect(parseBRLToCents(formatBRL(cents))).toBe(cents);
     }
+  });
+});
+
+describe("parseSignedCents", () => {
+  it("makes expenses negative and income positive", () => {
+    expect(parseSignedCents("1.234,56", "expense")).toBe(-123456);
+    expect(parseSignedCents("50,00", "income")).toBe(5000);
+    expect(parseSignedCents("R$ 89,90", "expense")).toBe(-8990);
+  });
+
+  it("ignores the input's own sign — direction decides", () => {
+    expect(parseSignedCents("-50", "income")).toBe(5000);
+    expect(parseSignedCents("50", "expense")).toBe(-5000);
   });
 });

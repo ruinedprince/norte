@@ -2,9 +2,14 @@
 
 import { revalidatePath } from "next/cache";
 
+import { parseSignedCents } from "@/core/domain/money";
 import { OfxImportSource } from "@/core/adapters/ofx/ofx-import-source";
 
-import { persistStatement, type ImportResult } from "./repository";
+import {
+  createManualTransaction,
+  persistStatement,
+  type ImportResult,
+} from "./repository";
 
 export type ImportState =
   | { ok: true; result: ImportResult }
@@ -44,4 +49,46 @@ export async function importOfxAction(
       error: error instanceof Error ? error.message : "Falha ao importar o arquivo.",
     };
   }
+}
+
+export type ManualState = { ok: true } | { ok: false; error: string } | null;
+
+/** Server Action for the manual-entry form. Money is parsed in cents with the
+ *  direction deciding the sign; the date (YYYY-MM-DD) is stored at UTC noon to
+ *  match imported dates. Shaped for `useActionState`. */
+export async function createManualTransactionAction(
+  _prev: ManualState,
+  formData: FormData,
+): Promise<ManualState> {
+  const accountId = String(formData.get("accountId") ?? "");
+  const dateStr = String(formData.get("date") ?? "");
+  const amount = String(formData.get("amount") ?? "");
+  const direction =
+    String(formData.get("direction") ?? "expense") === "income"
+      ? "income"
+      : "expense";
+  const description = String(formData.get("description") ?? "").trim();
+  const categoryId = String(formData.get("categoryId") ?? "");
+
+  if (!accountId) return { ok: false, error: "Escolha a conta." };
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+    return { ok: false, error: "Informe a data." };
+  }
+
+  const amountCents = parseSignedCents(amount, direction);
+  if (!amountCents) return { ok: false, error: "Informe um valor maior que zero." };
+
+  const [year, month, day] = dateStr.split("-").map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day, 12, 0, 0));
+
+  await createManualTransaction({
+    accountId,
+    date,
+    amountCents,
+    description,
+    categoryId: categoryId || null,
+  });
+  revalidatePath("/transactions");
+  revalidatePath("/");
+  return { ok: true };
 }
