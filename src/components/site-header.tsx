@@ -11,6 +11,7 @@ const NAV = [
   { href: "/categories", label: "Categorias" },
   { href: "/accounts", label: "Contas" },
   { href: "/investments", label: "Investimentos" },
+  { href: "/analysis", label: "Análise" },
 ];
 
 export function SiteHeader() {
