@@ -26,6 +26,7 @@ model Account {
   externalId          String?       @unique
   createdAt           DateTime      @default(now())
   transactions        Transaction[]
+  investmentTransactions InvestmentTransaction[]
 }
 
 /// Single-entry: a transaction has an account + signed amount + type.
@@ -98,4 +99,31 @@ model CategorizationRule {
   categoryId String
   category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   priority   Int      @default(0)
+}
+
+/// Fase 2 — an investable asset (escopo §4). Position is derived from its
+/// investment transactions, never stored.
+model Asset {
+  id           String                  @id @default(cuid())
+  ticker       String                  @unique
+  kind         String // fii | stock | etf
+  name         String
+  createdAt    DateTime                @default(now())
+  transactions InvestmentTransaction[]
+}
+
+/// Fase 2 — a buy/sell of an asset. `quantity` is whole shares; price in cents.
+model InvestmentTransaction {
+  id             String   @id @default(cuid())
+  assetId        String
+  asset          Asset    @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  accountId      String?
+  account        Account? @relation(fields: [accountId], references: [id], onDelete: SetNull)
+  date           DateTime
+  kind           String // buy | sell
+  quantity       Int
+  unitPriceCents Int
+  createdAt      DateTime @default(now())
+
+  @@index([assetId])
 }
