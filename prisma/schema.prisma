@@ -16,13 +16,16 @@ datasource db {
 /// A place money lives. For OFX imports `externalId` holds the bank-provided
 /// account identifier (e.g. "bankId:acctId") so re-imports find the same row.
 model Account {
-  id           String        @id @default(cuid())
-  name         String
-  type         String // checking | savings | cash | brokerage
-  currency     String        @default("BRL")
-  externalId   String?       @unique
-  createdAt    DateTime      @default(now())
-  transactions Transaction[]
+  id                  String        @id @default(cuid())
+  name                String
+  type                String // checking | savings | cash | brokerage
+  currency            String        @default("BRL")
+  // Balance before the first stored transaction, so a balance can be shown even
+  // when the full history was not imported (escopo Fase 1: contas & saldos).
+  openingBalanceCents Int           @default(0)
+  externalId          String?       @unique
+  createdAt           DateTime      @default(now())
+  transactions        Transaction[]
 }
 
 /// Single-entry: a transaction has an account + signed amount + type.
