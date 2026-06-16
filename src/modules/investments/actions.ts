@@ -2,10 +2,16 @@
 
 import { revalidatePath } from "next/cache";
 
+import { BrapiQuoteProvider } from "@/core/adapters/brapi/brapi-quote-provider";
 import { parseBRLToCents } from "@/core/domain/money";
 import type { AssetKind, InvestmentKind } from "@/core/domain/position";
 
-import { createAsset, createInvestmentTransaction } from "./repository";
+import {
+  createAsset,
+  createInvestmentTransaction,
+  listPositions,
+  saveQuote,
+} from "./repository";
 
 const ASSET_KINDS: readonly AssetKind[] = ["fii", "stock", "etf"];
 
@@ -61,4 +67,54 @@ export async function createInvestmentTransactionAction(
   });
   revalidatePath("/investments");
   return { ok: true };
+}
+
+export type QuoteState = { ok: true } | { ok: false; error: string } | null;
+export type SyncState = { ok: true; saved: number } | { ok: false; error: string } | null;
+
+/** Manual quote entry — the offline path when there is no brapi token. */
+export async function setQuoteAction(
+  _prev: QuoteState,
+  formData: FormData,
+): Promise<QuoteState> {
+  const assetId = String(formData.get("assetId") ?? "");
+  const closeCents = parseBRLToCents(String(formData.get("price") ?? ""));
+  if (!assetId) return { ok: false, error: "Escolha o ativo." };
+  if (closeCents <= 0) return { ok: false, error: "Informe um preço válido." };
+
+  await saveQuote({ assetId, closeCents, date: new Date() });
+  revalidatePath("/investments");
+  revalidatePath("/");
+  return { ok: true };
+}
+
+/** Best-effort sync of held tickers via brapi. Graceful on no-token/offline —
+ *  the app keeps the last stored quotes (escopo §6). */
+export async function syncQuotesAction(
+  _prev: SyncState,
+  _formData: FormData,
+): Promise<SyncState> {
+  const held = (await listPositions()).filter((p) => p.quantity > 0);
+  if (held.length === 0) return { ok: false, error: "Nenhuma posição para cotar." };
+
+  try {
+    const results = await new BrapiQuoteProvider().getQuotes(held.map((p) => p.ticker));
+    const byTicker = new Map(held.map((p) => [p.ticker.toUpperCase(), p.assetId]));
+    let saved = 0;
+    for (const result of results) {
+      const assetId = byTicker.get(result.ticker.toUpperCase());
+      if (assetId) {
+        await saveQuote({ assetId, closeCents: result.closeCents, date: result.date });
+        saved += 1;
+      }
+    }
+    revalidatePath("/investments");
+    revalidatePath("/");
+    return { ok: true, saved };
+  } catch (error) {
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : "Falha ao sincronizar.",
+    };
+  }
 }

@@ -110,6 +110,7 @@ model Asset {
   name         String
   createdAt    DateTime                @default(now())
   transactions InvestmentTransaction[]
+  quotes       Quote[]
 }
 
 /// Fase 2 — a buy/sell of an asset. `quantity` is whole shares; price in cents.
@@ -125,5 +126,18 @@ model InvestmentTransaction {
   unitPriceCents Int
   createdAt      DateTime @default(now())
 
+  @@index([assetId])
+}
+
+/// Fase 2 — local daily quote snapshot (escopo §6). One row per asset per day;
+/// the app reads the latest stored quote, so it works offline.
+model Quote {
+  id         String   @id @default(cuid())
+  assetId    String
+  asset      Asset    @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  date       DateTime
+  closeCents Int
+
+  @@unique([assetId, date])
   @@index([assetId])
 }
