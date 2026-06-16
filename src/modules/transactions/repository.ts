@@ -1,3 +1,4 @@
+import { pickCategoryId } from "@/core/domain/categorization";
 import { buildDedupKey } from "@/core/domain/dedup";
 import { typeFromAmount } from "@/core/domain/transaction";
 import type { ParsedStatement } from "@/core/ports/import-source";
@@ -48,6 +49,10 @@ export async function persistStatement(
   const fresh = [...byKey.entries()].filter(([key]) => !existingKeys.has(key));
 
   if (fresh.length > 0) {
+    // Auto-categorize new rows by the user's rules at import time (escopo §3).
+    const rules = await prisma.categorizationRule.findMany({
+      select: { matcher: true, categoryId: true, priority: true },
+    });
     await prisma.transaction.createMany({
       data: fresh.map(([dedupKey, tx]) => ({
         accountId: acct.id,
@@ -57,6 +62,7 @@ export async function persistStatement(
         description: tx.description,
         source: "ofx",
         externalId: tx.fitid ?? null,
+        categoryId: pickCategoryId(tx.description, rules),
         dedupKey,
       })),
     });
@@ -106,6 +112,47 @@ export async function monthlySpending(): Promise<MonthlySpendingPoint[]> {
   return [...byMonth.entries()]
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([month, spentCents]) => ({ month, spentCents }));
+}
+
+export interface CategorySpendPoint {
+  categoryId: string | null;
+  /** null for the uncategorized bucket; the UI labels it. */
+  name: string | null;
+  kind: string | null;
+  spentCents: number;
+}
+
+/**
+ * Spend grouped by category (money-out only), positive cents, biggest first.
+ * Uncategorized transactions collapse into a single null-named bucket. JS-side
+ * aggregation — fine for a personal dataset (escopo §1).
+ */
+export async function spendByCategory(): Promise<CategorySpendPoint[]> {
+  const rows = await prisma.transaction.findMany({
+    where: { amountCents: { lt: 0 } },
+    select: {
+      amountCents: true,
+      category: { select: { id: true, name: true, kind: true } },
+    },
+  });
+
+  const byCategory = new Map<string, CategorySpendPoint>();
+  for (const row of rows) {
+    const key = row.category?.id ?? "__none__";
+    const existing = byCategory.get(key);
+    if (existing) {
+      existing.spentCents += Math.abs(row.amountCents);
+    } else {
+      byCategory.set(key, {
+        categoryId: row.category?.id ?? null,
+        name: row.category?.name ?? null,
+        kind: row.category?.kind ?? null,
+        spentCents: Math.abs(row.amountCents),
+      });
+    }
+  }
+
+  return [...byCategory.values()].sort((a, b) => b.spentCents - a.spentCents);
 }
 
 /** Lightweight counters for the dashboard. */
