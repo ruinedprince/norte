@@ -1,3 +1,4 @@
+import { savingsRate } from "@/core/domain/cashflow";
 import { pickCategoryId } from "@/core/domain/categorization";
 import { buildDedupKey } from "@/core/domain/dedup";
 import { typeFromAmount } from "@/core/domain/transaction";
@@ -168,6 +169,45 @@ export async function monthlySpending(): Promise<MonthlySpendingPoint[]> {
   return [...byMonth.entries()]
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([month, spentCents]) => ({ month, spentCents }));
+}
+
+export interface CashFlowPoint {
+  month: string;
+  incomeCents: number;
+  expenseCents: number;
+  netCents: number;
+  savingsRate: number | null;
+}
+
+/**
+ * Receita × despesa por mês + savings rate (escopo Fase 1). Income is the sum of
+ * money-in, expense the magnitude of money-out, per "YYYY-MM" bucket, oldest
+ * first. Type is sign-based; transfers between own accounts would show on both
+ * sides — transfer pairing is a later slice.
+ */
+export async function monthlyCashFlow(): Promise<CashFlowPoint[]> {
+  const rows = await prisma.transaction.findMany({
+    select: { date: true, amountCents: true },
+  });
+
+  const byMonth = new Map<string, { income: number; expense: number }>();
+  for (const row of rows) {
+    const key = monthKey(row.date);
+    const bucket = byMonth.get(key) ?? { income: 0, expense: 0 };
+    if (row.amountCents >= 0) bucket.income += row.amountCents;
+    else bucket.expense += Math.abs(row.amountCents);
+    byMonth.set(key, bucket);
+  }
+
+  return [...byMonth.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([month, { income, expense }]) => ({
+      month,
+      incomeCents: income,
+      expenseCents: expense,
+      netCents: income - expense,
+      savingsRate: savingsRate(income, expense),
+    }));
 }
 
 export interface CategorySpendPoint {
