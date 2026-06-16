@@ -1,32 +1,119 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
+@custom-variant dark (&:is(.dark *));
+
+/* Norte — "Claude calmo" foundation: flat surfaces, generous space, warm
+   neutrals, no gradients/shadows. Identity accent = "north star" indigo over
+   the warm base. Money semantics: green = money in/dividends; expense stays
+   neutral; red is reserved for alerts only (escopo §5). */
 :root {
-  --background: #faf9f7;
-  --foreground: #1c1b19;
-  --muted: #6b6a64;
-  --accent: #534ab7;
+  --radius: 0.625rem;
+
+  /* Warm neutral base */
+  --background: oklch(0.984 0.004 95);
+  --foreground: oklch(0.241 0.008 75);
+  --card: oklch(0.995 0.003 95);
+  --card-foreground: var(--foreground);
+  --popover: oklch(0.995 0.003 95);
+  --popover-foreground: var(--foreground);
+  --muted: oklch(0.953 0.006 90);
+  --muted-foreground: oklch(0.523 0.012 75);
+  --secondary: oklch(0.953 0.006 90);
+  --secondary-foreground: var(--foreground);
+  --accent: oklch(0.949 0.009 90);
+  --accent-foreground: var(--foreground);
+  --border: oklch(0.905 0.007 88);
+  --input: oklch(0.905 0.007 88);
+
+  /* Brand: north-star indigo */
+  --primary: oklch(0.487 0.17 283);
+  --primary-foreground: oklch(0.985 0.002 95);
+  --ring: oklch(0.487 0.17 283);
+
+  /* Money semantics */
+  --positive: oklch(0.595 0.13 150);
+  --positive-foreground: oklch(0.985 0.002 95);
+  --destructive: oklch(0.577 0.245 27.325);
+
+  /* Charts — brand indigo as the primary series */
+  --chart-1: oklch(0.487 0.17 283);
+  --chart-2: oklch(0.595 0.13 150);
+  --chart-3: oklch(0.65 0.12 250);
+  --chart-4: oklch(0.7 0.1 80);
+  --chart-5: oklch(0.55 0.02 75);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
   --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-positive: var(--positive);
+  --color-positive-foreground: var(--positive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-heading: var(--font-geist-sans);
+
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #141413;
-    --foreground: #ededeb;
-    --muted: #9b9a92;
-    --accent: #7f77dd;
+/* Dark theme kept for a future manual toggle; the light warm base is the
+   identity for now (the .dark class is not applied by default). */
+.dark {
+  --background: oklch(0.18 0.004 90);
+  --foreground: oklch(0.93 0.004 90);
+  --card: oklch(0.214 0.004 90);
+  --card-foreground: var(--foreground);
+  --popover: oklch(0.214 0.004 90);
+  --popover-foreground: var(--foreground);
+  --muted: oklch(0.27 0.005 90);
+  --muted-foreground: oklch(0.71 0.008 85);
+  --secondary: oklch(0.27 0.005 90);
+  --secondary-foreground: var(--foreground);
+  --accent: oklch(0.27 0.005 90);
+  --accent-foreground: var(--foreground);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --primary: oklch(0.6 0.16 283);
+  --primary-foreground: oklch(0.18 0.004 90);
+  --ring: oklch(0.6 0.16 283);
+  --positive: oklch(0.68 0.13 150);
+  --destructive: oklch(0.704 0.191 22.216);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
   }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans antialiased;
+  }
 }
