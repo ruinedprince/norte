@@ -1,7 +1,8 @@
 import { formatBRL } from "@/core/domain/money";
 import { AssetForm } from "@/modules/investments/components/asset-form";
 import { InvestmentTransactionForm } from "@/modules/investments/components/investment-transaction-form";
-import { listAssets, listPositions } from "@/modules/investments/repository";
+import { QuotesCard } from "@/modules/investments/components/quotes-card";
+import { listAssets, listValuedPositions } from "@/modules/investments/repository";
 import {
   Card,
   CardContent,
@@ -17,16 +18,22 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { cn } from "@/lib/utils";
 
 // Always reflect the latest database state.
 export const dynamic = "force-dynamic";
 
 const KIND_LABELS: Record<string, string> = { fii: "FII", stock: "Ação", etf: "ETF" };
+const dash = (cents: number | null) => (cents == null ? "—" : formatBRL(cents));
 
 export default async function InvestmentsPage() {
-  const [positions, assets] = await Promise.all([listPositions(), listAssets()]);
+  const [positions, assets] = await Promise.all([listValuedPositions(), listAssets()]);
   const held = positions.filter((p) => p.quantity > 0);
-  const totalInvested = held.reduce((sum, p) => sum + p.investedCents, 0);
+  const investedTotal = held.reduce((sum, p) => sum + p.investedCents, 0);
+  const quoted = held.filter((p) => p.marketValueCents != null);
+  const marketTotal = quoted.reduce((sum, p) => sum + (p.marketValueCents ?? 0), 0);
+  const gain = marketTotal - quoted.reduce((sum, p) => sum + p.investedCents, 0);
+  const hasQuotes = quoted.length > 0;
 
   const now = new Date();
   const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
@@ -36,23 +43,55 @@ export default async function InvestmentsPage() {
       <header>
         <h1 className="font-serif text-3xl">Investimentos</h1>
         <p className="mt-1 text-muted-foreground">
-          Suas posições e aportes — a base da renda passiva.
+          Suas posições e o valor da carteira — a base da renda passiva.
         </p>
       </header>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-sm font-medium text-muted-foreground">
-            Total investido
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="font-serif text-4xl tabular-nums">{formatBRL(totalInvested)}</p>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Custo das {held.length} posiç{held.length === 1 ? "ão" : "ões"} em carteira.
-          </p>
-        </CardContent>
-      </Card>
+      <section className="grid gap-4 sm:grid-cols-3">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Valor de mercado
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="font-serif text-4xl tabular-nums">
+              {hasQuotes ? formatBRL(marketTotal) : "—"}
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              {quoted.length} de {held.length} posiç{held.length === 1 ? "ão" : "ões"} cotada
+              {quoted.length === 1 ? "" : "s"}
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Total investido
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="font-serif text-4xl tabular-nums">{formatBRL(investedTotal)}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Resultado
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p
+              className={cn(
+                "font-serif text-4xl tabular-nums",
+                !hasQuotes ? "text-foreground" : gain >= 0 ? "text-positive" : "text-destructive",
+              )}
+            >
+              {hasQuotes ? formatBRL(gain) : "—"}
+            </p>
+          </CardContent>
+        </Card>
+      </section>
 
       <Card>
         <CardHeader>
@@ -71,7 +110,9 @@ export default async function InvestmentsPage() {
                   <TableHead>Tipo</TableHead>
                   <TableHead className="text-right">Qtd.</TableHead>
                   <TableHead className="text-right">Preço médio</TableHead>
+                  <TableHead className="text-right">Preço atual</TableHead>
                   <TableHead className="text-right">Investido</TableHead>
+                  <TableHead className="text-right">Valor de mercado</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -90,14 +131,32 @@ export default async function InvestmentsPage() {
                     <TableCell className="text-right tabular-nums">
                       {formatBRL(position.avgCostCents)}
                     </TableCell>
+                    <TableCell className="text-right tabular-nums text-muted-foreground">
+                      {dash(position.currentPriceCents)}
+                    </TableCell>
                     <TableCell className="text-right tabular-nums">
                       {formatBRL(position.investedCents)}
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums font-medium">
+                      {dash(position.marketValueCents)}
                     </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
           )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Cotações</CardTitle>
+          <CardDescription>
+            Atualize via brapi ou informe um preço manualmente.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <QuotesCard assets={assets.map((a) => ({ id: a.id, ticker: a.ticker }))} />
         </CardContent>
       </Card>
 
