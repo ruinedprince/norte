@@ -1,11 +1,13 @@
 import Link from "next/link";
 
 import { formatBRL } from "@/core/domain/money";
+import { CashFlowChart } from "@/modules/analysis/components/cash-flow-chart";
 import { CategorySpendChart } from "@/modules/analysis/components/category-spend-chart";
 import { MonthlySpendChart } from "@/modules/analysis/components/monthly-spend-chart";
 import {
   getStats,
   listTransactions,
+  monthlyCashFlow,
   monthlySpending,
   spendByCategory,
 } from "@/modules/transactions/repository";
@@ -17,20 +19,28 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { formatMonthLabel } from "@/lib/format";
+import { cn } from "@/lib/utils";
+import { formatMonthLabel, formatPercent } from "@/lib/format";
 
 // Always reflect the latest database state (revalidated after each import).
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
-  const [spending, byCategory, recent, stats] = await Promise.all([
+  const [spending, cashFlow, byCategory, recent, stats] = await Promise.all([
     monthlySpending(),
+    monthlyCashFlow(),
     spendByCategory(),
     listTransactions(8),
     getStats(),
   ]);
 
-  const latest = spending.at(-1);
+  const latestFlow = cashFlow.at(-1);
+  const rateColor =
+    latestFlow?.savingsRate == null
+      ? "text-muted-foreground"
+      : latestFlow.savingsRate >= 0
+        ? "text-positive"
+        : "text-destructive";
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-10">
@@ -59,40 +69,59 @@ export default async function DashboardPage() {
             <Card>
               <CardHeader>
                 <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Gasto em {latest ? formatMonthLabel(latest.month) : "—"}
+                  Taxa de poupança ·{" "}
+                  {latestFlow ? formatMonthLabel(latestFlow.month) : "—"}
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="font-serif text-4xl tabular-nums">
-                  {formatBRL(latest?.spentCents ?? 0)}
+                <p className={cn("font-serif text-4xl tabular-nums", rateColor)}>
+                  {latestFlow?.savingsRate != null
+                    ? formatPercent(latestFlow.savingsRate)
+                    : "—"}
+                </p>
+                {latestFlow && (
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Saldo do mês {formatBRL(latestFlow.netCents)}
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Receita ·{" "}
+                  {latestFlow ? formatMonthLabel(latestFlow.month) : "—"}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="font-serif text-4xl tabular-nums text-positive">
+                  {formatBRL(latestFlow?.incomeCents ?? 0)}
                 </p>
               </CardContent>
             </Card>
             <Card>
               <CardHeader>
                 <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Transações
+                  Despesa ·{" "}
+                  {latestFlow ? formatMonthLabel(latestFlow.month) : "—"}
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="font-serif text-4xl tabular-nums">
-                  {stats.txCount}
-                </p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Contas
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="font-serif text-4xl tabular-nums">
-                  {stats.accountCount}
+                  {formatBRL(latestFlow?.expenseCents ?? 0)}
                 </p>
               </CardContent>
             </Card>
           </section>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Receita × despesa por mês</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <CashFlowChart data={cashFlow} />
+            </CardContent>
+          </Card>
 
           <div className="grid gap-6 lg:grid-cols-2">
             <Card>

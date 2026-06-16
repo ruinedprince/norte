@@ -31,3 +31,8 @@ export function formatTxDate(date: Date): string {
   const day = String(date.getUTCDate()).padStart(2, "0");
   return `${day} ${MONTHS_PT[date.getUTCMonth()]}`;
 }
+
+/** Format a ratio as a rounded percentage, e.g. 0.324 → "32%", -0.2 → "-20%". */
+export function formatPercent(ratio: number): string {
+  return `${Math.round(ratio * 100)}%`;
+}
