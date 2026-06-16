@@ -8,10 +8,16 @@ import type { AssetKind, InvestmentKind } from "@/core/domain/position";
 
 import {
   createAsset,
+  createDividend,
   createInvestmentTransaction,
   listPositions,
   saveQuote,
 } from "./repository";
+
+function utcNoon(dateStr: string): Date {
+  const [year, month, day] = dateStr.split("-").map(Number);
+  return new Date(Date.UTC(year, month - 1, day, 12, 0, 0));
+}
 
 const ASSET_KINDS: readonly AssetKind[] = ["fii", "stock", "etf"];
 
@@ -117,4 +123,30 @@ export async function syncQuotesAction(
       error: error instanceof Error ? error.message : "Falha ao sincronizar.",
     };
   }
+}
+
+export type DividendState = { ok: true } | { ok: false; error: string } | null;
+
+export async function createDividendAction(
+  _prev: DividendState,
+  formData: FormData,
+): Promise<DividendState> {
+  const assetId = String(formData.get("assetId") ?? "");
+  const exDateStr = String(formData.get("exDate") ?? "");
+  const payDateStr = String(formData.get("payDate") ?? "");
+  const perShareCents = parseBRLToCents(String(formData.get("perShare") ?? ""));
+
+  if (!assetId) return { ok: false, error: "Escolha o ativo." };
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(payDateStr)) {
+    return { ok: false, error: "Informe a data de pagamento." };
+  }
+  if (perShareCents <= 0) return { ok: false, error: "Informe o valor por cota." };
+
+  const payDate = utcNoon(payDateStr);
+  const exDate = /^\d{4}-\d{2}-\d{2}$/.test(exDateStr) ? utcNoon(exDateStr) : payDate;
+
+  await createDividend({ assetId, exDate, payDate, perShareCents });
+  revalidatePath("/investments");
+  revalidatePath("/");
+  return { ok: true };
 }

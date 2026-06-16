@@ -111,6 +111,7 @@ model Asset {
   createdAt    DateTime                @default(now())
   transactions InvestmentTransaction[]
   quotes       Quote[]
+  dividends    Dividend[]
 }
 
 /// Fase 2 — a buy/sell of an asset. `quantity` is whole shares; price in cents.
@@ -139,5 +140,19 @@ model Quote {
   closeCents Int
 
   @@unique([assetId, date])
+  @@index([assetId])
+}
+
+/// Fase 2 — a dividend/JCP payment per share (escopo §4). Monthly passive income
+/// is derived from these times the quantity held at the pay date.
+model Dividend {
+  id            String   @id @default(cuid())
+  assetId       String
+  asset         Asset    @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  exDate        DateTime
+  payDate       DateTime
+  perShareCents Int
+  createdAt     DateTime @default(now())
+
   @@index([assetId])
 }

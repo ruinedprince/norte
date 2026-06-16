@@ -105,3 +105,82 @@ export async function listValuedPositions(): Promise<ValuedPosition[]> {
     };
   });
 }
+
+function monthKey(date: Date): string {
+  return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}`;
+}
+
+function quantityHeldAt(
+  txns: { kind: string; quantity: number; unitPriceCents: number; date: Date }[],
+  date: Date,
+): number {
+  return derivePosition(
+    txns
+      .filter((t) => t.date.getTime() <= date.getTime())
+      .map((t) => ({
+        kind: t.kind as InvestmentKind,
+        quantity: t.quantity,
+        unitPriceCents: t.unitPriceCents,
+        date: t.date,
+      })),
+  ).quantity;
+}
+
+export function createDividend(input: {
+  assetId: string;
+  exDate: Date;
+  payDate: Date;
+  perShareCents: number;
+}) {
+  return prisma.dividend.create({ data: input });
+}
+
+export interface DividendRow {
+  id: string;
+  ticker: string;
+  exDate: Date;
+  payDate: Date;
+  perShareCents: number;
+  quantityAtPay: number;
+  incomeCents: number;
+}
+
+/** Dividend history, newest pay date first, with the income it generated
+ *  (per-share × quantity held at the pay date). */
+export async function listDividends(): Promise<DividendRow[]> {
+  const dividends = await prisma.dividend.findMany({
+    include: { asset: { include: { transactions: true } } },
+    orderBy: [{ payDate: "desc" }],
+  });
+  return dividends.map((dividend) => {
+    const quantityAtPay = quantityHeldAt(dividend.asset.transactions, dividend.payDate);
+    return {
+      id: dividend.id,
+      ticker: dividend.asset.ticker,
+      exDate: dividend.exDate,
+      payDate: dividend.payDate,
+      perShareCents: dividend.perShareCents,
+      quantityAtPay,
+      incomeCents: dividend.perShareCents * quantityAtPay,
+    };
+  });
+}
+
+export interface PassiveIncomePoint {
+  month: string;
+  incomeCents: number;
+}
+
+/** Passive income per "YYYY-MM" (by pay date), oldest first (escopo Fase 2). */
+export async function monthlyPassiveIncome(): Promise<PassiveIncomePoint[]> {
+  const rows = await listDividends();
+  const byMonth = new Map<string, number>();
+  for (const row of rows) {
+    if (row.incomeCents <= 0) continue;
+    const key = monthKey(row.payDate);
+    byMonth.set(key, (byMonth.get(key) ?? 0) + row.incomeCents);
+  }
+  return [...byMonth.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([month, incomeCents]) => ({ month, incomeCents }));
+}
