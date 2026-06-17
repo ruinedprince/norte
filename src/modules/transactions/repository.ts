@@ -156,7 +156,7 @@ export interface MonthlySpendingPoint {
  */
 export async function monthlySpending(): Promise<MonthlySpendingPoint[]> {
   const rows = await prisma.transaction.findMany({
-    where: { amountCents: { lt: 0 } },
+    where: { amountCents: { lt: 0 }, type: { not: "transfer" } },
     select: { date: true, amountCents: true },
   });
 
@@ -182,11 +182,12 @@ export interface CashFlowPoint {
 /**
  * Receita × despesa por mês + savings rate (escopo Fase 1). Income is the sum of
  * money-in, expense the magnitude of money-out, per "YYYY-MM" bucket, oldest
- * first. Type is sign-based; transfers between own accounts would show on both
- * sides — transfer pairing is a later slice.
+ * first. Transfers (e.g. an aporte's cash leg) are excluded — they are neither
+ * income nor expense (escopo §4).
  */
 export async function monthlyCashFlow(): Promise<CashFlowPoint[]> {
   const rows = await prisma.transaction.findMany({
+    where: { type: { not: "transfer" } },
     select: { date: true, amountCents: true },
   });
 
@@ -233,7 +234,7 @@ export async function latestMonthBudgetSplit(): Promise<BudgetSplit | null> {
   const start = new Date(Date.UTC(year, month - 1, 1));
   const end = new Date(Date.UTC(year, month, 1));
   const rows = await prisma.transaction.findMany({
-    where: { amountCents: { lt: 0 }, date: { gte: start, lt: end } },
+    where: { amountCents: { lt: 0 }, type: { not: "transfer" }, date: { gte: start, lt: end } },
     select: { amountCents: true, category: { select: { kind: true } } },
   });
 
@@ -269,7 +270,7 @@ export interface CategorySpendPoint {
  */
 export async function spendByCategory(): Promise<CategorySpendPoint[]> {
   const rows = await prisma.transaction.findMany({
-    where: { amountCents: { lt: 0 } },
+    where: { amountCents: { lt: 0 }, type: { not: "transfer" } },
     select: {
       amountCents: true,
       category: { select: { id: true, name: true, kind: true } },

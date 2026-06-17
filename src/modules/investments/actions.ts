@@ -55,6 +55,8 @@ export async function createInvestmentTransactionAction(
   const kind: InvestmentKind = String(formData.get("kind") ?? "") === "sell" ? "sell" : "buy";
   const quantity = Math.trunc(Number(formData.get("quantity")));
   const unitPriceCents = parseBRLToCents(String(formData.get("unitPrice") ?? ""));
+  const accountRaw = String(formData.get("accountId") ?? "");
+  const accountId = accountRaw && accountRaw !== "none" ? accountRaw : null;
 
   if (!assetId) return { ok: false, error: "Escolha o ativo." };
   if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return { ok: false, error: "Informe a data." };
@@ -70,8 +72,12 @@ export async function createInvestmentTransactionAction(
     kind,
     quantity,
     unitPriceCents,
+    accountId,
   });
   revalidatePath("/investments");
+  revalidatePath("/accounts");
+  revalidatePath("/transactions");
+  revalidatePath("/");
   return { ok: true };
 }
 

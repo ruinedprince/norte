@@ -12,14 +12,44 @@ export function createAsset(input: { ticker: string; kind: AssetKind; name: stri
   });
 }
 
+/**
+ * Record a buy/sell. When `accountId` is given, also writes the paired cash leg
+ * (escopo §4 aporte↔caixa): a `transfer` that debits the account on a buy and
+ * credits it on a sell, so the money leaves/enters the cash side and the
+ * patrimônio is not double-counted. Transfers are excluded from income/expense.
+ */
 export function createInvestmentTransaction(input: {
   assetId: string;
   date: Date;
   kind: InvestmentKind;
   quantity: number;
   unitPriceCents: number;
+  accountId?: string | null;
 }) {
-  return prisma.investmentTransaction.create({ data: input });
+  const { accountId, ...investment } = input;
+  const totalCents = input.quantity * input.unitPriceCents;
+
+  return prisma.$transaction(async (tx) => {
+    const created = await tx.investmentTransaction.create({
+      data: { ...investment, accountId: accountId ?? null },
+    });
+    if (accountId) {
+      await tx.transaction.create({
+        data: {
+          accountId,
+          date: input.date,
+          amountCents: input.kind === "buy" ? -totalCents : totalCents,
+          type: "transfer",
+          description:
+            input.kind === "buy" ? "Aporte (investimento)" : "Resgate (investimento)",
+          source: "manual",
+          dedupKey: `invtransfer:${crypto.randomUUID()}`,
+          transferGroupId: created.id,
+        },
+      });
+    }
+    return created;
+  });
 }
 
 export interface PositionRow extends Position {
