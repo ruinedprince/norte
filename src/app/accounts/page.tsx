@@ -19,7 +19,7 @@ export default async function AccountsPage() {
   const patrimonio = accounts.reduce((sum, account) => sum + account.balanceCents, 0);
 
   return (
-    <div className="mx-auto flex max-w-5xl flex-col gap-6 px-6 py-10">
+    <div className="mx-auto flex max-w-5xl flex-col gap-6 px-6 py-10 reveal-stagger">
       <header>
         <h1 className="font-serif text-3xl">Contas</h1>
         <p className="mt-1 text-muted-foreground">
