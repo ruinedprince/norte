@@ -65,8 +65,9 @@ decidir qualquer coisa de arquitetura ou escopo.
   (Fases 0–4).** 48 testes verdes.
 - **Polish entregue** (em `dev` e `main`): **dark mode** (toggle + sem flash), **nav responsiva**
   (menu mobile), **alertas das regras no Painel**, **onboarding** de 1º uso, Painel reorientado nos
-  **3 números-âncora** (taxa de poupança · patrimônio · renda passiva), e **linguagem de movimento**
-  do §5 (`reveal-stagger`, respeitando `prefers-reduced-motion`).
+  **3 números-âncora** (taxa de poupança · patrimônio · renda passiva), **eixos de gráfico compactos**
+  (`R$ 1,2 mil`), e a **linguagem de movimento** do §5 (`reveal-stagger`, em todas as telas,
+  respeitando `prefers-reduced-motion`).
 - **Cuidado de versão:** Next 16 e Prisma 7 trazem breaking changes vs. training — Prisma 7
   exige driver adapter (sem `new PrismaClient()` puro) e o `migrate dev` **não regenera** o
   client (rodar `npx prisma generate` após mudar o schema; e **reiniciar o `next dev`** após
