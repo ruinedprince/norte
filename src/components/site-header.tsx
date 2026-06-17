@@ -5,6 +5,8 @@ import { usePathname } from "next/navigation";
 
 import { cn } from "@/lib/utils";
 
+import { ThemeToggle } from "./theme-toggle";
+
 const NAV = [
   { href: "/", label: "Painel" },
   { href: "/transactions", label: "Transações" },
@@ -65,6 +67,10 @@ export function SiteHeader() {
             );
           })}
         </nav>
+
+        <div className="ml-auto">
+          <ThemeToggle />
+        </div>
       </div>
     </header>
   );
