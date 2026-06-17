@@ -56,9 +56,7 @@ decidir qualquer coisa de arquitetura ou escopo.
 - **Fase 3 (análise & tendências) entregue** (em `dev` e `main`): `/analysis` — **patrimônio no
   tempo** (caixa + investimentos a mercado, `netWorthSeries` no core), tendências (variação 3m +
   **drawdown**) e **renda ativa × dividendos** (fatia da renda vinda de dividendos, `passiveShare`).
-  44 testes verdes. *Limitação:* aporte de investimento ainda não debita o caixa (sem link
-  aporte↔conta — fica pro pairing de transferências, adiado), então o patrimônio pode contar o
-  dinheiro do aporte duas vezes.
+  44 testes verdes.
 - **Fase 4 (motor de regras) entregue** (em `dev` e `main`): `/rules` — regras que o usuário
   define sobre **taxa de poupança / DY / gasto do mês / variação do patrimônio** (comparador +
   limiar), com painel de **alertas** (`evaluateRules` no core). **Fecha o escopo MoSCoW
@@ -68,6 +66,9 @@ decidir qualquer coisa de arquitetura ou escopo.
   **3 números-âncora** (taxa de poupança · patrimônio · renda passiva), **eixos de gráfico compactos**
   (`R$ 1,2 mil`), **títulos por página** (`%s · Norte`), e a **linguagem de movimento** do §5
   (`reveal-stagger`, em todas as telas, respeitando `prefers-reduced-motion`).
+- **Fatia `aporte↔caixa` entregue** (em `dev` e `main`): aporte/venda debita/credita uma conta-caixa
+  (Transaction `type=transfer`, `transferGroupId`), excluída das agregações de receita/despesa — o
+  **patrimônio não conta mais o aporte em dobro**. Suíte com 49 testes verdes.
 - **Cuidado de versão:** Next 16 e Prisma 7 trazem breaking changes vs. training — Prisma 7
   exige driver adapter (sem `new PrismaClient()` puro) e o `migrate dev` **não regenera** o
   client (rodar `npx prisma generate` após mudar o schema; e **reiniciar o `next dev`** após
@@ -76,12 +77,12 @@ decidir qualquer coisa de arquitetura ou escopo.
 ## Próxima fatia
 
 **Escopo MoSCoW (Fases 0–4) completo.** O que sobra são itens adiados de propósito:
-- Produto: link **aporte↔caixa** (pairing de transferências); `[Could]` **P/VP + indicadores de
-  FII** (Fase 2); os `Won't` do escopo §3 (Open Finance/Pluggy, previsão/IA, Monte Carlo, etc.).
+- Produto: `[Could]` **P/VP + indicadores de FII** (Fase 2); os `Won't` do escopo §3 (Open
+  Finance/Pluggy, previsão/IA, Monte Carlo, etc.).
 - Infra adiada (escopo §2/§7): deploy **EC2 + Tailscale**, auth/HTTPS, cripto dos tokens, backup.
 
-Polish inicial feito (dark mode, nav responsiva, alertas no Painel, onboarding). Próxima fatia: você
-escolhe — mais polish, um dos adiados (aporte↔caixa, P/VP), ou começar o deploy. Decidir antes da `feature/*`.
+Polish e aporte↔caixa feitos. Próxima fatia: você escolhe — mais polish, **P/VP + indicadores de
+FII** (`[Could]`), ou começar o **deploy** (EC2 + Tailscale). Decidir antes da `feature/*`.
 
 ## Rodar
 
