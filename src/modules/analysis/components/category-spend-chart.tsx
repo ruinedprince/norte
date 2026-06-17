@@ -11,7 +11,7 @@ import {
   YAxis,
 } from "recharts";
 
-import { formatBRL } from "@/core/domain/money";
+import { formatBRL, formatCompactBRL } from "@/core/domain/money";
 import { usePrefersReducedMotion } from "@/lib/use-prefers-reduced-motion";
 
 interface CategoryPoint {
@@ -48,7 +48,7 @@ export function CategorySpendChart({ data }: { data: CategoryPoint[] }) {
         <CartesianGrid horizontal={false} stroke="var(--border)" strokeDasharray="3 3" />
         <XAxis
           type="number"
-          tickFormatter={(value: number) => formatBRL(value)}
+          tickFormatter={(value: number) => formatCompactBRL(value)}
           tickLine={false}
           axisLine={false}
           stroke="var(--muted-foreground)"

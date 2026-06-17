@@ -10,7 +10,7 @@ import {
   YAxis,
 } from "recharts";
 
-import { formatBRL } from "@/core/domain/money";
+import { formatBRL, formatCompactBRL } from "@/core/domain/money";
 import { formatMonthLabel } from "@/lib/format";
 import { usePrefersReducedMotion } from "@/lib/use-prefers-reduced-motion";
 
@@ -48,8 +48,8 @@ export function MonthlySpendChart({ data }: { data: MonthlyPoint[] }) {
           fontSize={12}
         />
         <YAxis
-          width={88}
-          tickFormatter={(value: number) => formatBRL(value)}
+          width={56}
+          tickFormatter={(value: number) => formatCompactBRL(value)}
           tickLine={false}
           axisLine={false}
           stroke="var(--muted-foreground)"

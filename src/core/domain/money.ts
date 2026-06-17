@@ -14,6 +14,18 @@ export function formatBRL(cents: Cents): string {
   return BRL.format(cents / 100);
 }
 
+const BRL_COMPACT = new Intl.NumberFormat("pt-BR", {
+  style: "currency",
+  currency: "BRL",
+  notation: "compact",
+  maximumFractionDigits: 1,
+});
+
+/** Compact BRL for chart axis ticks, e.g. 123456 -> "R$ 1,2 mil". */
+export function formatCompactBRL(cents: Cents): string {
+  return BRL_COMPACT.format(cents / 100);
+}
+
 /** Parse a "R$ 1.234,56" / "1234,56" / "-50,00" string into integer cents. */
 export function parseBRLToCents(input: string): Cents {
   const normalized = input
