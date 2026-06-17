@@ -16,6 +16,8 @@ import {
 import { TransactionsTable } from "@/modules/transactions/components/transactions-table";
 import { SavingsGoalCard } from "@/modules/settings/components/savings-goal-card";
 import { getSavingsGoalRate } from "@/modules/settings/repository";
+import { AlertsBanner } from "@/modules/rules/components/alerts-banner";
+import { evaluateAlerts } from "@/modules/rules/repository";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -30,7 +32,7 @@ import { formatMonthLabel, formatPercent } from "@/lib/format";
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
-  const [spending, cashFlow, byCategory, recent, stats, goalRate, budgetSplit] =
+  const [spending, cashFlow, byCategory, recent, stats, goalRate, budgetSplit, alerts] =
     await Promise.all([
       monthlySpending(),
       monthlyCashFlow(),
@@ -39,7 +41,9 @@ export default async function DashboardPage() {
       getStats(),
       getSavingsGoalRate(),
       latestMonthBudgetSplit(),
+      evaluateAlerts(),
     ]);
+  const triggeredAlerts = alerts.filter((a) => a.triggered);
 
   const latestFlow = cashFlow.at(-1);
   const rateColor =
@@ -72,6 +76,10 @@ export default async function DashboardPage() {
         </Card>
       ) : (
         <div className="flex flex-col gap-6">
+          <AlertsBanner
+            count={triggeredAlerts.length}
+            names={triggeredAlerts.map((a) => a.name)}
+          />
           <section className="grid gap-4 sm:grid-cols-3">
             <Card>
               <CardHeader>
