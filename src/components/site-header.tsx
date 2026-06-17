@@ -1,8 +1,12 @@
 "use client";
 
+import { useState } from "react";
+
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Menu, X } from "lucide-react";
 
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 import { ThemeToggle } from "./theme-toggle";
@@ -19,11 +23,27 @@ const NAV = [
 
 export function SiteHeader() {
   const pathname = usePathname();
+  const [open, setOpen] = useState(false);
+
+  const isActive = (href: string) =>
+    href === "/" ? pathname === "/" : pathname.startsWith(href);
+
+  const linkClass = (href: string) =>
+    cn(
+      "rounded-md px-3 py-1.5 transition-colors duration-150",
+      isActive(href)
+        ? "bg-muted text-foreground"
+        : "text-muted-foreground hover:text-foreground",
+    );
 
   return (
     <header className="border-b border-border">
       <div className="mx-auto flex h-14 max-w-5xl items-center gap-6 px-6">
-        <Link href="/" className="flex items-center gap-2 text-primary">
+        <Link
+          href="/"
+          onClick={() => setOpen(false)}
+          className="flex items-center gap-2 text-primary"
+        >
           <svg
             width="20"
             height="20"
@@ -45,33 +65,45 @@ export function SiteHeader() {
           <span className="font-medium tracking-wide">Norte</span>
         </Link>
 
-        <nav className="flex items-center gap-1 text-sm">
-          {NAV.map((item) => {
-            const active =
-              item.href === "/"
-                ? pathname === "/"
-                : pathname.startsWith(item.href);
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  "rounded-md px-3 py-1.5 transition-colors duration-150",
-                  active
-                    ? "bg-muted text-foreground"
-                    : "text-muted-foreground hover:text-foreground",
-                )}
-              >
-                {item.label}
-              </Link>
-            );
-          })}
+        {/* Desktop nav */}
+        <nav className="hidden items-center gap-1 text-sm md:flex">
+          {NAV.map((item) => (
+            <Link key={item.href} href={item.href} className={linkClass(item.href)}>
+              {item.label}
+            </Link>
+          ))}
         </nav>
 
-        <div className="ml-auto">
+        <div className="ml-auto flex items-center gap-1">
           <ThemeToggle />
+          <Button
+            variant="ghost"
+            size="icon"
+            className="md:hidden"
+            aria-label="Abrir menu"
+            aria-expanded={open}
+            onClick={() => setOpen((o) => !o)}
+          >
+            {open ? <X /> : <Menu />}
+          </Button>
         </div>
       </div>
+
+      {/* Mobile menu */}
+      {open && (
+        <nav className="flex flex-col gap-1 border-t border-border px-6 py-3 text-sm md:hidden">
+          {NAV.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              onClick={() => setOpen(false)}
+              className={linkClass(item.href)}
+            >
+              {item.label}
+            </Link>
+          ))}
+        </nav>
+      )}
     </header>
   );
 }
