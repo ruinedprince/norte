@@ -15,6 +15,8 @@ import {
   monthlySpending,
   spendByCategory,
 } from "@/modules/transactions/repository";
+import { monthlyPassiveIncome } from "@/modules/investments/repository";
+import { netWorthAnalysis } from "@/modules/analysis/repository";
 import { TransactionsTable } from "@/modules/transactions/components/transactions-table";
 import { SavingsGoalCard } from "@/modules/settings/components/savings-goal-card";
 import { getSavingsGoalRate } from "@/modules/settings/repository";
@@ -41,18 +43,33 @@ const ONBOARDING_STEPS = [
 ];
 
 export default async function DashboardPage() {
-  const [spending, cashFlow, byCategory, recent, stats, goalRate, budgetSplit, alerts] =
-    await Promise.all([
-      monthlySpending(),
-      monthlyCashFlow(),
-      spendByCategory(),
-      listTransactions(8),
-      getStats(),
-      getSavingsGoalRate(),
-      latestMonthBudgetSplit(),
-      evaluateAlerts(),
-    ]);
+  const [
+    spending,
+    cashFlow,
+    byCategory,
+    recent,
+    stats,
+    goalRate,
+    budgetSplit,
+    alerts,
+    netWorth,
+    passiveIncome,
+  ] = await Promise.all([
+    monthlySpending(),
+    monthlyCashFlow(),
+    spendByCategory(),
+    listTransactions(8),
+    getStats(),
+    getSavingsGoalRate(),
+    latestMonthBudgetSplit(),
+    evaluateAlerts(),
+    netWorthAnalysis(),
+    monthlyPassiveIncome(),
+  ]);
   const triggeredAlerts = alerts.filter((a) => a.triggered);
+  const passiva12mCents = passiveIncome
+    .slice(-12)
+    .reduce((sum, point) => sum + point.incomeCents, 0);
 
   const latestFlow = cashFlow.at(-1);
   const rateColor =
@@ -134,26 +151,35 @@ export default async function DashboardPage() {
             <Card>
               <CardHeader>
                 <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Receita ·{" "}
-                  {latestFlow ? formatMonthLabel(latestFlow.month) : "—"}
+                  Patrimônio
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="font-serif text-4xl tabular-nums text-positive">
-                  {formatBRL(latestFlow?.incomeCents ?? 0)}
+                <p
+                  className={cn(
+                    "font-serif text-4xl tabular-nums",
+                    netWorth.currentCents < 0 ? "text-destructive" : "text-foreground",
+                  )}
+                >
+                  {formatBRL(netWorth.currentCents)}
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Caixa + investimentos
                 </p>
               </CardContent>
             </Card>
             <Card>
               <CardHeader>
                 <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Despesa ·{" "}
-                  {latestFlow ? formatMonthLabel(latestFlow.month) : "—"}
+                  Renda passiva (12m)
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="font-serif text-4xl tabular-nums">
-                  {formatBRL(latestFlow?.expenseCents ?? 0)}
+                <p className="font-serif text-4xl tabular-nums text-positive">
+                  {formatBRL(passiva12mCents)}
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Dividendos recebidos
                 </p>
               </CardContent>
             </Card>
