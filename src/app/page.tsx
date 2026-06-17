@@ -81,7 +81,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-10">
-      <header className="mb-8">
+      <header className="mb-8 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2 motion-safe:duration-500">
         <h1 className="font-serif text-3xl">Painel</h1>
         <p className="mt-1 text-muted-foreground">
           Pra onde o dinheiro foi — o ponto de partida do Norte.
@@ -100,7 +100,7 @@ export default async function DashboardPage() {
                 trabalho.
               </p>
             </div>
-            <ol className="mx-auto flex w-full max-w-md flex-col gap-2">
+            <ol className="mx-auto flex w-full max-w-md flex-col gap-2 reveal-stagger">
               {ONBOARDING_STEPS.map((step, index) => (
                 <li key={step.href}>
                   <Link
@@ -122,7 +122,7 @@ export default async function DashboardPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-6 reveal-stagger">
           <AlertsBanner
             count={triggeredAlerts.length}
             names={triggeredAlerts.map((a) => a.name)}
