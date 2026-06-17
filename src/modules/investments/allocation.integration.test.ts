@@ -39,8 +39,12 @@ describe("portfolio allocation (real SQLite via Prisma 7)", () => {
     await saveQuote({ assetId: b.id, closeCents: 3000, date: new Date(Date.UTC(2024, 5, 1, 12)) });
 
     const { byAsset } = await portfolioAllocation();
-    // A = 10×1000 = 10_000 (25%); B = 10×3000 = 30_000 (75%)
-    expect(byAsset.find((s) => s.key === A)?.fraction).toBeCloseTo(0.25, 5);
-    expect(byAsset.find((s) => s.key === B)?.fraction).toBeCloseTo(0.75, 5);
+    const sliceA = byAsset.find((s) => s.key === A);
+    const sliceB = byAsset.find((s) => s.key === B);
+    // Per-asset market value is isolated from any other holdings in the db.
+    expect(sliceA?.valueCents).toBe(10000); // 10 × 1000
+    expect(sliceB?.valueCents).toBe(30000); // 10 × 3000
+    // B is 3× A in value and share, regardless of the rest of the portfolio.
+    expect(sliceB!.fraction).toBeCloseTo(3 * sliceA!.fraction, 5);
   });
 });
