@@ -13,6 +13,7 @@ import {
   portfolioAllocation,
   portfolioDividendYield,
 } from "@/modules/investments/repository";
+import { listAccounts } from "@/modules/transactions/repository";
 import {
   Card,
   CardContent,
@@ -40,7 +41,7 @@ const KIND_LABELS: Record<string, string> = { fii: "FII", stock: "Ação", etf: 
 const dash = (cents: number | null) => (cents == null ? "—" : formatBRL(cents));
 
 export default async function InvestmentsPage() {
-  const [positions, assets, passiveIncome, dividends, allocation, dy] =
+  const [positions, assets, passiveIncome, dividends, allocation, dy, accounts] =
     await Promise.all([
       listValuedPositions(),
       listAssets(),
@@ -48,6 +49,7 @@ export default async function InvestmentsPage() {
       listDividends(),
       portfolioAllocation(),
       portfolioDividendYield(),
+      listAccounts(),
     ]);
   const held = positions.filter((p) => p.quantity > 0);
   const investedTotal = held.reduce((sum, p) => sum + p.investedCents, 0);
@@ -244,6 +246,7 @@ export default async function InvestmentsPage() {
         <CardContent>
           <InvestmentTransactionForm
             assets={assets.map((a) => ({ id: a.id, ticker: a.ticker }))}
+            accounts={accounts.map((a) => ({ id: a.id, name: a.name }))}
             today={today}
           />
         </CardContent>

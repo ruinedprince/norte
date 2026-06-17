@@ -17,9 +17,11 @@ import { createInvestmentTransactionAction, type InvestState } from "../actions"
 
 export function InvestmentTransactionForm({
   assets,
+  accounts,
   today,
 }: {
   assets: { id: string; ticker: string }[];
+  accounts: { id: string; name: string }[];
   today: string;
 }) {
   const [state, formAction, pending] = useActionState<InvestState, FormData>(
@@ -30,7 +32,7 @@ export function InvestmentTransactionForm({
 
   return (
     <form action={formAction} className="flex flex-col gap-3">
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         <div className="flex flex-col gap-1.5">
           <Label>Ativo</Label>
           <Select name="assetId" disabled={disabled}>
@@ -69,6 +71,22 @@ export function InvestmentTransactionForm({
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="inv-date">Data</Label>
           <Input id="inv-date" name="date" type="date" defaultValue={today} disabled={disabled} />
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <Label>Conta (caixa)</Label>
+          <Select name="accountId" defaultValue={accounts[0]?.id ?? "none"} disabled={disabled}>
+            <SelectTrigger className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">Nenhuma</SelectItem>
+              {accounts.map((account) => (
+                <SelectItem key={account.id} value={account.id}>
+                  {account.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
       <div className="flex items-center gap-3">
