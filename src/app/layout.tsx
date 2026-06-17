@@ -16,7 +16,10 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Norte",
+  title: {
+    default: "Norte — sua bússola financeira",
+    template: "%s · Norte",
+  },
   description:
     "Sua bússola financeira — gastos, economias e investimentos num só lugar.",
 };

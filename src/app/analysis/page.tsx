@@ -15,6 +15,8 @@ import { cn } from "@/lib/utils";
 // Always reflect the latest database state.
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Análise" };
+
 export default async function AnalysisPage() {
   const [nw, mix] = await Promise.all([netWorthAnalysis(), incomeMix()]);
   const change = nw.change3mCents;

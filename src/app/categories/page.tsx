@@ -18,6 +18,8 @@ import {
 // Always reflect the latest database state (revalidated after each change).
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Categorias" };
+
 const KIND_LABELS: Record<string, string> = {
   need: "Necessidade",
   want: "Desejo",

@@ -17,6 +17,8 @@ import { cn } from "@/lib/utils";
 // Always reflect the latest database state.
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Regras" };
+
 const METRIC_LABELS: Record<string, string> = Object.fromEntries(
   RULE_METRICS.map((m) => [m.key, m.label]),
 );

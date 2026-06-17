@@ -14,6 +14,8 @@ import { cn } from "@/lib/utils";
 // Always reflect the latest database state (revalidated after each change).
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Contas" };
+
 export default async function AccountsPage() {
   const accounts = await listAccountsWithBalances();
   const patrimonio = accounts.reduce((sum, account) => sum + account.balanceCents, 0);

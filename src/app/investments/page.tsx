@@ -34,6 +34,8 @@ import { cn } from "@/lib/utils";
 // Always reflect the latest database state.
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Investimentos" };
+
 const KIND_LABELS: Record<string, string> = { fii: "FII", stock: "Ação", etf: "ETF" };
 const dash = (cents: number | null) => (cents == null ? "—" : formatBRL(cents));
 

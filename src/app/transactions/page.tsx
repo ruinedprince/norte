@@ -18,6 +18,8 @@ import {
 // Always reflect the latest database state (revalidated after each import).
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Transações" };
+
 export default async function TransactionsPage() {
   const cashAccount = await ensureDefaultCashAccount();
   const [rows, accounts, categories] = await Promise.all([
