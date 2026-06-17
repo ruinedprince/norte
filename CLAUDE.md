@@ -63,6 +63,8 @@ decidir qualquer coisa de arquitetura ou escopo.
   define sobre **taxa de poupança / DY / gasto do mês / variação do patrimônio** (comparador +
   limiar), com painel de **alertas** (`evaluateRules` no core). **Fecha o escopo MoSCoW
   (Fases 0–4).** 48 testes verdes.
+- **Polish entregue** (em `dev` e `main`): **dark mode** (toggle + sem flash), **nav responsiva**
+  (menu mobile), **alertas das regras no Painel**, e **onboarding** de 1º uso no Painel vazio.
 - **Cuidado de versão:** Next 16 e Prisma 7 trazem breaking changes vs. training — Prisma 7
   exige driver adapter (sem `new PrismaClient()` puro) e o `migrate dev` **não regenera** o
   client (rodar `npx prisma generate` após mudar o schema; e **reiniciar o `next dev`** após
@@ -75,7 +77,8 @@ decidir qualquer coisa de arquitetura ou escopo.
   FII** (Fase 2); os `Won't` do escopo §3 (Open Finance/Pluggy, previsão/IA, Monte Carlo, etc.).
 - Infra adiada (escopo §2/§7): deploy **EC2 + Tailscale**, auth/HTTPS, cripto dos tokens, backup.
 
-Próxima fatia: você escolhe — polish/refino, um dos adiados, ou começar o deploy. Decidir antes da `feature/*`.
+Polish inicial feito (dark mode, nav responsiva, alertas no Painel, onboarding). Próxima fatia: você
+escolhe — mais polish, um dos adiados (aporte↔caixa, P/VP), ou começar o deploy. Decidir antes da `feature/*`.
 
 ## Rodar
 
