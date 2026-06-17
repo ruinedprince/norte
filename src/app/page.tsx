@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { ChevronRight, Compass } from "lucide-react";
+
 import { formatBRL } from "@/core/domain/money";
 import { BudgetSplitCard } from "@/modules/analysis/components/budget-split-card";
 import { CashFlowChart } from "@/modules/analysis/components/cash-flow-chart";
@@ -30,6 +32,13 @@ import { formatMonthLabel, formatPercent } from "@/lib/format";
 
 // Always reflect the latest database state (revalidated after each import).
 export const dynamic = "force-dynamic";
+
+const ONBOARDING_STEPS = [
+  { href: "/transactions", title: "Importe ou lance transações", desc: "OFX do banco ou lançamento manual" },
+  { href: "/categories", title: "Crie categorias e regras", desc: "pro Norte categorizar sozinho" },
+  { href: "/accounts", title: "Cadastre contas e saldos", desc: "a semente do patrimônio" },
+  { href: "/investments", title: "Registre investimentos", desc: "posições, cotações e dividendos" },
+];
 
 export default async function DashboardPage() {
   const [spending, cashFlow, byCategory, recent, stats, goalRate, budgetSplit, alerts] =
@@ -64,14 +73,35 @@ export default async function DashboardPage() {
 
       {stats.txCount === 0 ? (
         <Card>
-          <CardContent className="flex flex-col items-center gap-4 py-16 text-center">
-            <p className="max-w-sm text-muted-foreground">
-              Nenhuma transação ainda. Importe um extrato OFX do seu banco para
-              ver pra onde o dinheiro está indo.
-            </p>
-            <Button asChild size="lg">
-              <Link href="/transactions">Importar extrato OFX</Link>
-            </Button>
+          <CardContent className="flex flex-col gap-6 py-10">
+            <div className="flex flex-col items-center gap-2 text-center">
+              <Compass className="size-8 text-primary" />
+              <h2 className="font-serif text-2xl">Bem-vindo ao Norte</h2>
+              <p className="max-w-md text-muted-foreground">
+                Sua bússola financeira. Registre seus dados e o Painel mostra pra
+                onde o dinheiro vai — e quão perto você está de não depender do
+                trabalho.
+              </p>
+            </div>
+            <ol className="mx-auto flex w-full max-w-md flex-col gap-2">
+              {ONBOARDING_STEPS.map((step, index) => (
+                <li key={step.href}>
+                  <Link
+                    href={step.href}
+                    className="flex items-center gap-3 rounded-lg border border-border px-4 py-3 transition-colors hover:bg-muted"
+                  >
+                    <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-medium text-primary">
+                      {index + 1}
+                    </span>
+                    <span className="flex-1">
+                      <span className="font-medium">{step.title}</span>
+                      <span className="block text-sm text-muted-foreground">{step.desc}</span>
+                    </span>
+                    <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
+                  </Link>
+                </li>
+              ))}
+            </ol>
           </CardContent>
         </Card>
       ) : (
