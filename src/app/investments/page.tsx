@@ -1,12 +1,14 @@
 import { formatBRL } from "@/core/domain/money";
 import { AllocationCard } from "@/modules/investments/components/allocation-card";
 import { AssetForm } from "@/modules/investments/components/asset-form";
+import { DividendCalendar } from "@/modules/investments/components/dividend-calendar";
 import { DividendForm } from "@/modules/investments/components/dividend-form";
 import { IndicatorsCard } from "@/modules/investments/components/indicators-card";
 import { InvestmentTransactionForm } from "@/modules/investments/components/investment-transaction-form";
 import { PassiveIncomeChart } from "@/modules/investments/components/passive-income-chart";
 import { QuotesCard } from "@/modules/investments/components/quotes-card";
 import {
+  dividendCalendar,
   listAssets,
   listDividends,
   listValuedPositions,
@@ -42,7 +44,7 @@ const KIND_LABELS: Record<string, string> = { fii: "FII", stock: "Ação", etf: 
 const dash = (cents: number | null) => (cents == null ? "—" : formatBRL(cents));
 
 export default async function InvestmentsPage() {
-  const [positions, assets, passiveIncome, dividends, allocation, dy, accounts] =
+  const [positions, assets, passiveIncome, dividends, allocation, dy, accounts, calendar] =
     await Promise.all([
       listValuedPositions(),
       listAssets(),
@@ -51,6 +53,7 @@ export default async function InvestmentsPage() {
       portfolioAllocation(),
       portfolioDividendYield(),
       listAccounts(),
+      dividendCalendar(),
     ]);
   const held = positions.filter((p) => p.quantity > 0);
   const investedTotal = held.reduce((sum, p) => sum + p.investedCents, 0);
@@ -210,6 +213,18 @@ export default async function InvestmentsPage() {
         </CardHeader>
         <CardContent>
           <PassiveIncomeChart data={passiveIncome} />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Calendário de dividendos</CardTitle>
+          <CardDescription>
+            Próximos pagamentos registrados, por data-com e pagamento.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <DividendCalendar entries={calendar} />
         </CardContent>
       </Card>
 

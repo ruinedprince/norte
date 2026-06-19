@@ -258,6 +258,43 @@ export async function monthlyPassiveIncome(): Promise<PassiveIncomePoint[]> {
     .map(([month, incomeCents]) => ({ month, incomeCents }));
 }
 
+export interface DividendCalendarEntry {
+  id: string;
+  ticker: string;
+  exDate: Date;
+  payDate: Date;
+  perShareCents: number;
+  /** Quantity held as of the pay date (current holding for future dates). */
+  quantity: number;
+  /** Expected income = quantity × per-share. */
+  incomeCents: number;
+  /** Pay month "YYYY-MM", for grouping the agenda. */
+  monthKey: string;
+}
+
+/**
+ * Upcoming dividends (pay date today or later), earliest first — the calendar /
+ * agenda view (escopo Fase 2 [Must]). These are scheduled events the user has
+ * recorded, not a forecast: the income is just the recorded per-share times the
+ * quantity held. Reuses listDividends so the quantity logic stays in one place.
+ */
+export async function dividendCalendar(): Promise<DividendCalendarEntry[]> {
+  const today = startOfUtcDay(new Date());
+  return (await listDividends())
+    .filter((d) => d.payDate.getTime() >= today.getTime())
+    .sort((a, b) => a.payDate.getTime() - b.payDate.getTime())
+    .map((d) => ({
+      id: d.id,
+      ticker: d.ticker,
+      exDate: d.exDate,
+      payDate: d.payDate,
+      perShareCents: d.perShareCents,
+      quantity: d.quantityAtPay,
+      incomeCents: d.incomeCents,
+      monthKey: monthKey(d.payDate),
+    }));
+}
+
 export interface AllocationSlice {
   key: string; // ticker or kind
   valueCents: number;

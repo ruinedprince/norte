@@ -23,6 +23,27 @@ export function formatMonthLabel(key: string): string {
   return `${MONTHS_PT[Number(month) - 1]}/${year.slice(2)}`;
 }
 
+const MONTHS_PT_LONG = [
+  "janeiro",
+  "fevereiro",
+  "março",
+  "abril",
+  "maio",
+  "junho",
+  "julho",
+  "agosto",
+  "setembro",
+  "outubro",
+  "novembro",
+  "dezembro",
+];
+
+/** A UTC date → "junho de 2024", for grouping headers (e.g. the dividend
+ *  calendar). Read in UTC to match the UTC-noon storage (escopo §4). */
+export function formatMonthYear(date: Date): string {
+  return `${MONTHS_PT_LONG[date.getUTCMonth()]} de ${date.getUTCFullYear()}`;
+}
+
 /**
  * Format a transaction date as "15 jan". Dates are stored at UTC noon, so we
  * read them in UTC to always show the intended calendar day (escopo §4).
