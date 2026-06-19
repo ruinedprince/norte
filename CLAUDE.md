@@ -83,6 +83,11 @@ decidir qualquer coisa de arquitetura ou escopo.
   gráfico de patrimônio, `ComposedChart`) + **inclinação** (`linearTrendSlope`, R$/mês) na `/analysis`
   — `movingAverage` e `linearTrendSlope` no core, descritivos (§3, sem previsão). Fecha "médias,
   inclinação" do `[Should]` da Fase 3. 60 testes verdes.
+- **Fatia `dividend-calendar` entregue** (em `dev` e `main`): **calendário de dividendos** em
+  `/investments` — agenda dos **próximos pagamentos** registrados (pagamento ≥ hoje), agrupada por
+  mês, com data-com, pagamento, valor/cota e **a receber** (qtd atual × valor) + total. `dividendCalendar`
+  reusa `listDividends` (sem previsão — só eventos registrados, §3). Fecha o "calendário" do `[Must]`
+  de dividendos da Fase 2. 61 testes verdes.
 - **Cuidado de versão:** Next 16 e Prisma 7 trazem breaking changes vs. training — Prisma 7
   exige driver adapter (sem `new PrismaClient()` puro) e o `migrate dev` **não regenera** o
   client (rodar `npx prisma generate` após mudar o schema; e **reiniciar o `next dev`** após
@@ -90,16 +95,15 @@ decidir qualquer coisa de arquitetura ou escopo.
 
 ## Próxima fatia
 
-**Escopo MoSCoW (Fases 0–4) completo, mais P/VP, tags e médias/inclinação.** Revisão dos gaps do
-escopo inicial: **tags** e **médias/inclinação** entregues; restam dois adiados de propósito:
+**Escopo MoSCoW (Fases 0–4) completo, mais P/VP, tags, médias/inclinação e calendário de dividendos.**
+Dos 4 gaps do escopo inicial, 3 entregues (tags · médias/inclinação · calendário); resta um, adiado
+de propósito:
 - **Import CSV** (Fase 0 `[Must]` "OFX/CSV") — CSV era *fallback* do OFX (§6) e o Inter exporta OFX,
-  então nunca foi necessário (YAGNI).
-- **"Calendário" de dividendos** (Fase 2 `[Must]`) — histórico + renda passiva entregues; falta só a
-  visão de calendário (ex-date futura).
+  então nunca foi necessário (YAGNI). Único `[Must]` não-coberto, por escolha.
 - `Won't` do escopo §3 (Open Finance/Pluggy, previsão/IA, Monte Carlo, etc.) — fora de escopo por design.
 - Infra adiada (escopo §2/§7): deploy **EC2 + Tailscale**, auth/HTTPS, cripto dos tokens, backup.
 
-Próxima fatia: você escolhe — calendário de dividendos, import CSV, mais polish, ou começar o
+Próxima fatia: você escolhe — import CSV (fecha o último `[Must]`), mais polish, ou começar o
 **deploy** (EC2 + Tailscale, precisa das suas credenciais). Decidir antes da `feature/*`.
 
 ## Rodar
