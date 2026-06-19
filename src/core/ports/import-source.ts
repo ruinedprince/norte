@@ -27,7 +27,7 @@ export interface ParsedStatement {
 }
 
 /**
- * Port for any statement source (OFX now; CSV / Pluggy later). The domain depends
+ * Port for any statement source (OFX and CSV today; Pluggy later). The domain depends
  * on this interface, never on a concrete parser — an anti-corruption layer so a
  * new source can be added without touching the core (escopo §6).
  */

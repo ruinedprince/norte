@@ -2,7 +2,7 @@ import { savingsRate } from "@/core/domain/cashflow";
 import { pickCategoryId } from "@/core/domain/categorization";
 import { buildDedupKey } from "@/core/domain/dedup";
 import { typeFromAmount } from "@/core/domain/transaction";
-import type { ParsedStatement } from "@/core/ports/import-source";
+import type { ParsedStatement, ParsedTransaction } from "@/core/ports/import-source";
 import { prisma } from "@/lib/prisma";
 
 export interface ImportResult {
@@ -63,6 +63,60 @@ export async function persistStatement(
         description: tx.description,
         source: "ofx",
         externalId: tx.fitid ?? null,
+        categoryId: pickCategoryId(tx.description, rules),
+        dedupKey,
+      })),
+    });
+  }
+
+  return {
+    accountName: acct.name,
+    total: transactions.length,
+    imported: fresh.length,
+    duplicates: transactions.length - fresh.length,
+  };
+}
+
+/**
+ * Persist CSV transactions into a user-chosen account (escopo §6 CSV fallback).
+ * A CSV has no account id and no FITID, so the target account is passed in and
+ * dedup falls back to the composite (date+amount+memo) hash — re-importing the
+ * same file is a no-op. New rows are auto-categorized by the user's rules, same
+ * as OFX.
+ */
+export async function persistCsvTransactions(
+  accountId: string,
+  transactions: ParsedTransaction[],
+): Promise<ImportResult> {
+  const acct = await prisma.account.findUnique({ where: { id: accountId } });
+  if (!acct) throw new Error("Conta de destino não encontrada.");
+
+  const byKey = new Map<string, ParsedTransaction>();
+  for (const tx of transactions) {
+    byKey.set(buildDedupKey(tx), tx);
+  }
+
+  const keys = [...byKey.keys()];
+  const existing = await prisma.transaction.findMany({
+    where: { accountId: acct.id, dedupKey: { in: keys } },
+    select: { dedupKey: true },
+  });
+  const existingKeys = new Set(existing.map((e) => e.dedupKey));
+  const fresh = [...byKey.entries()].filter(([key]) => !existingKeys.has(key));
+
+  if (fresh.length > 0) {
+    const rules = await prisma.categorizationRule.findMany({
+      select: { matcher: true, categoryId: true, priority: true },
+    });
+    await prisma.transaction.createMany({
+      data: fresh.map(([dedupKey, tx]) => ({
+        accountId: acct.id,
+        date: tx.date,
+        amountCents: tx.amountCents,
+        type: typeFromAmount(tx.amountCents),
+        description: tx.description,
+        source: "csv",
+        externalId: null,
         categoryId: pickCategoryId(tx.description, rules),
         dedupKey,
       })),
