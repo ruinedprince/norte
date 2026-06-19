@@ -6,6 +6,7 @@ import {
   type InvTx,
   type NetWorthPoint,
 } from "@/core/domain/networth";
+import { linearTrendSlope, movingAverage } from "@/core/domain/trends";
 import { monthlyPassiveIncome } from "@/modules/investments/repository";
 import { monthlyCashFlow } from "@/modules/transactions/repository";
 import { prisma } from "@/lib/prisma";
@@ -35,8 +36,12 @@ function buildMonthRange(dates: Date[]): string[] {
 
 export interface NetWorthAnalysis {
   series: NetWorthPoint[];
+  /** 3-month trailing moving average of net worth, aligned to `series`. */
+  maSeries: (number | null)[];
   currentCents: number;
   change3mCents: number | null;
+  /** Least-squares slope of net worth over the period, in cents per month. */
+  slopeCentsPerMonth: number | null;
   drawdown: number;
 }
 
@@ -64,10 +69,14 @@ export async function netWorthAnalysis(): Promise<NetWorthAnalysis> {
     months,
   });
 
+  const netWorthValues = series.map((p) => p.netWorthCents);
+
   return {
     series,
+    maSeries: movingAverage(netWorthValues, 3),
     currentCents: series.at(-1)?.netWorthCents ?? 0,
     change3mCents: netWorthChange(series, 3),
+    slopeCentsPerMonth: linearTrendSlope(netWorthValues),
     drawdown: maxDrawdown(series),
   };
 }
