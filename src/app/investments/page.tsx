@@ -2,6 +2,7 @@ import { formatBRL } from "@/core/domain/money";
 import { AllocationCard } from "@/modules/investments/components/allocation-card";
 import { AssetForm } from "@/modules/investments/components/asset-form";
 import { DividendForm } from "@/modules/investments/components/dividend-form";
+import { IndicatorsCard } from "@/modules/investments/components/indicators-card";
 import { InvestmentTransactionForm } from "@/modules/investments/components/investment-transaction-form";
 import { PassiveIncomeChart } from "@/modules/investments/components/passive-income-chart";
 import { QuotesCard } from "@/modules/investments/components/quotes-card";
@@ -168,6 +169,27 @@ export default async function InvestmentsPage() {
               </TableBody>
             </Table>
           )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Indicadores</CardTitle>
+          <CardDescription>P/VP e dividend yield por ativo (informe o VPA).</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <IndicatorsCard
+            rows={held.map((p) => ({
+              assetId: p.assetId,
+              ticker: p.ticker,
+              kind: p.kind,
+              currentPriceCents: p.currentPriceCents,
+              bookValuePerShareCents: p.bookValuePerShareCents,
+              priceToBook: p.priceToBook,
+              dividendYield: p.dividendYield,
+            }))}
+            assets={assets.map((a) => ({ id: a.id, ticker: a.ticker }))}
+          />
         </CardContent>
       </Card>
 
