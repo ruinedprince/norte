@@ -1,3 +1,4 @@
+import { priceToBook, trailingDividendYield } from "@/core/domain/indicators";
 import { derivePosition } from "@/core/domain/position";
 import type { AssetKind, InvestmentKind, Position } from "@/core/domain/position";
 import { prisma } from "@/lib/prisma";
@@ -9,6 +10,15 @@ export function listAssets() {
 export function createAsset(input: { ticker: string; kind: AssetKind; name: string }) {
   return prisma.asset.create({
     data: { ticker: input.ticker.toUpperCase(), kind: input.kind, name: input.name },
+  });
+}
+
+/** Set an asset's latest book value per share (VPA), integer cents — the input
+ *  for the descriptive P/VP indicator (escopo Fase 2 [Could]). */
+export function setAssetBookValue(assetId: string, bookValuePerShareCents: number) {
+  return prisma.asset.update({
+    where: { id: assetId },
+    data: { bookValuePerShareCents },
   });
 }
 
@@ -57,6 +67,8 @@ export interface PositionRow extends Position {
   ticker: string;
   name: string;
   kind: string;
+  /** Latest user-entered book value per share (VPA), cents — null if unset. */
+  bookValuePerShareCents: number | null;
 }
 
 /** Every asset with its derived position (escopo Fase 2). */
@@ -80,9 +92,24 @@ export async function listPositions(): Promise<PositionRow[]> {
       ticker: asset.ticker,
       name: asset.name,
       kind: asset.kind,
+      bookValuePerShareCents: asset.bookValuePerShareCents,
       ...position,
     };
   });
+}
+
+/** Sum of per-share dividends paid since `cutoff`, per assetId — the trailing
+ *  numerator for each asset's dividend yield. */
+async function trailingPerShareByAsset(cutoff: Date): Promise<Map<string, number>> {
+  const rows = await prisma.dividend.findMany({
+    where: { payDate: { gte: cutoff } },
+    select: { assetId: true, perShareCents: true },
+  });
+  const byAsset = new Map<string, number>();
+  for (const row of rows) {
+    byAsset.set(row.assetId, (byAsset.get(row.assetId) ?? 0) + row.perShareCents);
+  }
+  return byAsset;
 }
 
 function startOfUtcDay(date: Date): Date {
@@ -118,20 +145,36 @@ export interface ValuedPosition extends PositionRow {
   marketValueCents: number | null;
   gainCents: number | null;
   quoteDate: Date | null;
+  /** P/VP: current price over book value per share — null when either is unset. */
+  priceToBook: number | null;
+  /** Trailing-12m dividend yield for this asset — null when there is no price. */
+  dividendYield: number | null;
 }
 
-/** Positions valued at the latest stored quote (null where no quote yet). */
+/** Positions valued at the latest stored quote, with the descriptive P/VP and
+ *  trailing-12m dividend yield per asset (null where the inputs are missing). */
 export async function listValuedPositions(): Promise<ValuedPosition[]> {
-  const [positions, latest] = await Promise.all([listPositions(), latestQuoteByAsset()]);
+  const cutoff = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000);
+  const [positions, latest, trailingDiv] = await Promise.all([
+    listPositions(),
+    latestQuoteByAsset(),
+    trailingPerShareByAsset(cutoff),
+  ]);
   return positions.map((position) => {
     const quote = latest.get(position.assetId);
+    const currentPriceCents = quote?.closeCents ?? null;
     const marketValueCents = quote ? position.quantity * quote.closeCents : null;
     return {
       ...position,
-      currentPriceCents: quote?.closeCents ?? null,
+      currentPriceCents,
       marketValueCents,
       gainCents: marketValueCents != null ? marketValueCents - position.investedCents : null,
       quoteDate: quote?.date ?? null,
+      priceToBook: priceToBook(currentPriceCents, position.bookValuePerShareCents),
+      dividendYield: trailingDividendYield(
+        trailingDiv.get(position.assetId) ?? 0,
+        currentPriceCents,
+      ),
     };
   });
 }

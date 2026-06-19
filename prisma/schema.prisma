@@ -108,6 +108,9 @@ model Asset {
   ticker       String                  @unique
   kind         String // fii | stock | etf
   name         String
+  // Latest book value per share (VPA), integer cents. User-entered, like a
+  // manual quote — it feeds the descriptive P/VP indicator (escopo Fase 2 Could).
+  bookValuePerShareCents Int?
   createdAt    DateTime                @default(now())
   transactions InvestmentTransaction[]
   quotes       Quote[]

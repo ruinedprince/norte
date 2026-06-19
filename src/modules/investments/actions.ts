@@ -12,6 +12,7 @@ import {
   createInvestmentTransaction,
   listPositions,
   saveQuote,
+  setAssetBookValue,
 } from "./repository";
 
 function utcNoon(dateStr: string): Date {
@@ -95,6 +96,25 @@ export async function setQuoteAction(
   if (closeCents <= 0) return { ok: false, error: "Informe um preço válido." };
 
   await saveQuote({ assetId, closeCents, date: new Date() });
+  revalidatePath("/investments");
+  revalidatePath("/");
+  return { ok: true };
+}
+
+export type BookValueState = { ok: true } | { ok: false; error: string } | null;
+
+/** Set an asset's book value per share (VPA) — the manual input behind the
+ *  descriptive P/VP indicator (escopo Fase 2 [Could]). */
+export async function setAssetBookValueAction(
+  _prev: BookValueState,
+  formData: FormData,
+): Promise<BookValueState> {
+  const assetId = String(formData.get("assetId") ?? "");
+  const bookValuePerShareCents = parseBRLToCents(String(formData.get("bookValue") ?? ""));
+  if (!assetId) return { ok: false, error: "Escolha o ativo." };
+  if (bookValuePerShareCents <= 0) return { ok: false, error: "Informe um VPA válido." };
+
+  await setAssetBookValue(assetId, bookValuePerShareCents);
   revalidatePath("/investments");
   revalidatePath("/");
   return { ok: true };
