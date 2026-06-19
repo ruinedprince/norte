@@ -10,6 +10,8 @@ import {
 import { cn } from "@/lib/utils";
 import { formatTxDate } from "@/lib/format";
 
+import { RowTags, type TagRef } from "./row-tags";
+
 interface TransactionRow {
   id: string;
   date: Date;
@@ -17,9 +19,16 @@ interface TransactionRow {
   description: string;
   account: { name: string };
   category: { name: string } | null;
+  tags: { tag: TagRef }[];
 }
 
-export function TransactionsTable({ rows }: { rows: TransactionRow[] }) {
+export function TransactionsTable({
+  rows,
+  allTags = [],
+}: {
+  rows: TransactionRow[];
+  allTags?: TagRef[];
+}) {
   if (rows.length === 0) {
     return (
       <p className="py-10 text-center text-sm text-muted-foreground">
@@ -35,6 +44,7 @@ export function TransactionsTable({ rows }: { rows: TransactionRow[] }) {
           <TableHead className="w-20">Data</TableHead>
           <TableHead>Descrição</TableHead>
           <TableHead>Conta</TableHead>
+          <TableHead>Tags</TableHead>
           <TableHead className="text-right">Valor</TableHead>
         </TableRow>
       </TableHeader>
@@ -56,6 +66,13 @@ export function TransactionsTable({ rows }: { rows: TransactionRow[] }) {
               </TableCell>
               <TableCell className="text-muted-foreground">
                 {tx.account.name}
+              </TableCell>
+              <TableCell>
+                <RowTags
+                  transactionId={tx.id}
+                  tags={tx.tags.map((t) => t.tag)}
+                  allTags={allTags}
+                />
               </TableCell>
               <TableCell
                 className={cn(
