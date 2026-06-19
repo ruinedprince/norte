@@ -7,6 +7,7 @@ import {
   listTags,
   listTransactions,
 } from "@/modules/transactions/repository";
+import { CsvImportForm } from "@/modules/transactions/components/csv-import-form";
 import { ImportForm } from "@/modules/transactions/components/import-form";
 import { ManualEntryForm } from "@/modules/transactions/components/manual-entry-form";
 import { TagsManager } from "@/modules/transactions/components/tags-manager";
@@ -62,6 +63,21 @@ export default async function TransactionsPage({
         </CardHeader>
         <CardContent>
           <ImportForm />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Importar CSV</CardTitle>
+          <CardDescription>
+            Fallback do OFX (ex.: fatura do cartão). Escolha a conta de destino.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <CsvImportForm
+            accounts={accounts.map((a) => ({ id: a.id, name: a.name }))}
+            defaultAccountId={cashAccount.id}
+          />
         </CardContent>
       </Card>
 

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 
 import { parseSignedCents } from "@/core/domain/money";
+import { CsvImportSource } from "@/core/adapters/csv/csv-import-source";
 import { OfxImportSource } from "@/core/adapters/ofx/ofx-import-source";
 
 import {
@@ -10,6 +11,7 @@ import {
   createManualTransaction,
   createTag,
   deleteTag,
+  persistCsvTransactions,
   persistStatement,
   removeTransactionTag,
   type ImportResult,
@@ -51,6 +53,45 @@ export async function importOfxAction(
     return {
       ok: false,
       error: error instanceof Error ? error.message : "Falha ao importar o arquivo.",
+    };
+  }
+}
+
+export type CsvImportState =
+  | { ok: true; result: ImportResult }
+  | { ok: false; error: string }
+  | null;
+
+/**
+ * Server Action for the CSV upload form (escopo §6 fallback for OFX). A CSV has
+ * no account, so the user picks the target account; transactions are parsed
+ * behind the CsvImportSource port and persisted into it idempotently.
+ */
+export async function importCsvAction(
+  _prev: CsvImportState,
+  formData: FormData,
+): Promise<CsvImportState> {
+  const file = formData.get("file");
+  const accountId = String(formData.get("accountId") ?? "");
+  if (!(file instanceof File) || file.size === 0) {
+    return { ok: false, error: "Selecione um arquivo CSV." };
+  }
+  if (!accountId) return { ok: false, error: "Escolha a conta de destino." };
+
+  try {
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    const transactions = new CsvImportSource().parse(bytes);
+    if (transactions.length === 0) {
+      return { ok: false, error: "Nenhuma transação reconhecida no CSV." };
+    }
+    const result = await persistCsvTransactions(accountId, transactions);
+    revalidatePath("/transactions");
+    revalidatePath("/");
+    return { ok: true, result };
+  } catch (error) {
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : "Falha ao importar o CSV.",
     };
   }
 }
