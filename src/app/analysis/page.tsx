@@ -31,7 +31,7 @@ export default async function AnalysisPage() {
         </p>
       </header>
 
-      <section className="grid gap-4 sm:grid-cols-3">
+      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader>
             <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -80,14 +80,45 @@ export default async function AnalysisPage() {
             </p>
           </CardContent>
         </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Tendência (mês)
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p
+              className={cn(
+                "font-serif text-4xl tabular-nums",
+                nw.slopeCentsPerMonth == null
+                  ? "text-muted-foreground"
+                  : nw.slopeCentsPerMonth >= 0
+                    ? "text-positive"
+                    : "text-destructive",
+              )}
+            >
+              {nw.slopeCentsPerMonth == null
+                ? "—"
+                : `${nw.slopeCentsPerMonth >= 0 ? "+" : ""}${formatBRL(Math.round(nw.slopeCentsPerMonth))}`}
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Ajuste linear do período.
+            </p>
+          </CardContent>
+        </Card>
       </section>
 
       <Card>
         <CardHeader>
           <CardTitle>Patrimônio no tempo</CardTitle>
+          <CardDescription>
+            Caixa + investimentos a mercado, com a média móvel de 3 meses.
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <NetWorthChart data={nw.series} />
+          <NetWorthChart
+            data={nw.series.map((point, i) => ({ ...point, maCents: nw.maSeries[i] }))}
+          />
         </CardContent>
       </Card>
 

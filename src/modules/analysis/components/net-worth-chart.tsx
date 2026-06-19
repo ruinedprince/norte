@@ -2,9 +2,10 @@
 
 import {
   Area,
-  AreaChart,
   CartesianGrid,
+  ComposedChart,
   Legend,
+  Line,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -19,9 +20,14 @@ interface Point {
   month: string;
   cashCents: number;
   investmentsCents: number;
+  maCents: number | null;
 }
 
-const LABELS: Record<string, string> = { caixa: "Caixa", investimentos: "Investimentos" };
+const LABELS: Record<string, string> = {
+  caixa: "Caixa",
+  investimentos: "Investimentos",
+  media: "Média 3m",
+};
 
 export function NetWorthChart({ data }: { data: Point[] }) {
   const reducedMotion = usePrefersReducedMotion();
@@ -38,11 +44,12 @@ export function NetWorthChart({ data }: { data: Point[] }) {
     label: formatMonthLabel(point.month),
     caixa: point.cashCents,
     investimentos: point.investmentsCents,
+    media: point.maCents,
   }));
 
   return (
     <ResponsiveContainer width="100%" height={300}>
-      <AreaChart data={chartData} margin={{ top: 8, right: 8, bottom: 0, left: 8 }}>
+      <ComposedChart data={chartData} margin={{ top: 8, right: 8, bottom: 0, left: 8 }}>
         <CartesianGrid vertical={false} stroke="var(--border)" strokeDasharray="3 3" />
         <XAxis
           dataKey="label"
@@ -93,7 +100,17 @@ export function NetWorthChart({ data }: { data: Point[] }) {
           isAnimationActive={!reducedMotion}
           animationDuration={600}
         />
-      </AreaChart>
+        <Line
+          type="monotone"
+          dataKey="media"
+          stroke="var(--chart-3)"
+          strokeWidth={2}
+          dot={false}
+          connectNulls
+          isAnimationActive={!reducedMotion}
+          animationDuration={600}
+        />
+      </ComposedChart>
     </ResponsiveContainer>
   );
 }
