@@ -6,8 +6,12 @@ import { parseSignedCents } from "@/core/domain/money";
 import { OfxImportSource } from "@/core/adapters/ofx/ofx-import-source";
 
 import {
+  addTransactionTag,
   createManualTransaction,
+  createTag,
+  deleteTag,
   persistStatement,
+  removeTransactionTag,
   type ImportResult,
 } from "./repository";
 
@@ -91,4 +95,43 @@ export async function createManualTransactionAction(
   revalidatePath("/transactions");
   revalidatePath("/");
   return { ok: true };
+}
+
+export type TagState = { ok: true } | { ok: false; error: string } | null;
+
+/** Create a tag (Fase 0 [Must]). Idempotent on the unique name. */
+export async function createTagAction(
+  _prev: TagState,
+  formData: FormData,
+): Promise<TagState> {
+  const name = String(formData.get("name") ?? "").trim();
+  if (!name) return { ok: false, error: "Informe o nome da tag." };
+
+  await createTag(name);
+  revalidatePath("/transactions");
+  return { ok: true };
+}
+
+/** Delete a tag; its transaction links cascade away. */
+export async function deleteTagAction(id: string): Promise<void> {
+  await deleteTag(id);
+  revalidatePath("/transactions");
+}
+
+/** Attach a tag to a transaction. */
+export async function addTransactionTagAction(
+  transactionId: string,
+  tagId: string,
+): Promise<void> {
+  await addTransactionTag(transactionId, tagId);
+  revalidatePath("/transactions");
+}
+
+/** Detach a tag from a transaction. */
+export async function removeTransactionTagAction(
+  transactionId: string,
+  tagId: string,
+): Promise<void> {
+  await removeTransactionTag(transactionId, tagId);
+  revalidatePath("/transactions");
 }

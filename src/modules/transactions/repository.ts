@@ -77,12 +77,52 @@ export async function persistStatement(
   };
 }
 
-/** Most recent transactions, newest first, with their account and category. */
-export async function listTransactions(limit = 200) {
+/** Most recent transactions, newest first, with their account, category and
+ *  tags. When `tagId` is given, only transactions carrying that tag are returned. */
+export async function listTransactions(limit = 200, tagId?: string) {
   return prisma.transaction.findMany({
+    where: tagId ? { tags: { some: { tagId } } } : undefined,
     orderBy: [{ date: "desc" }, { createdAt: "desc" }],
     take: limit,
-    include: { account: true, category: true },
+    include: {
+      account: true,
+      category: true,
+      tags: { include: { tag: true } },
+    },
+  });
+}
+
+/** All tags, alphabetical, with how many transactions carry each. */
+export function listTags() {
+  return prisma.tag.findMany({
+    orderBy: { name: "asc" },
+    select: { id: true, name: true, _count: { select: { transactions: true } } },
+  });
+}
+
+/** Create a tag, idempotent on its unique name. */
+export function createTag(name: string) {
+  return prisma.tag.upsert({ where: { name }, create: { name }, update: {} });
+}
+
+/** Delete a tag; its transaction links cascade away. */
+export function deleteTag(id: string) {
+  return prisma.tag.delete({ where: { id } });
+}
+
+/** Attach a tag to a transaction (idempotent on the pair). */
+export function addTransactionTag(transactionId: string, tagId: string) {
+  return prisma.transactionTag.upsert({
+    where: { transactionId_tagId: { transactionId, tagId } },
+    create: { transactionId, tagId },
+    update: {},
+  });
+}
+
+/** Detach a tag from a transaction. */
+export function removeTransactionTag(transactionId: string, tagId: string) {
+  return prisma.transactionTag.delete({
+    where: { transactionId_tagId: { transactionId, tagId } },
   });
 }
 
