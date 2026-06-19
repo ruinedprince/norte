@@ -88,6 +88,11 @@ decidir qualquer coisa de arquitetura ou escopo.
   mês, com data-com, pagamento, valor/cota e **a receber** (qtd atual × valor) + total. `dividendCalendar`
   reusa `listDividends` (sem previsão — só eventos registrados, §3). Fecha o "calendário" do `[Must]`
   de dividendos da Fase 2. 61 testes verdes.
+- **Fatia `csv-import` entregue** (em `dev` e `main`): **import CSV** em `/transactions` (fallback do
+  OFX, §6) — parser genérico atrás de `CsvImportSource` (detecta delimitador `;`/`,`/tab, acha
+  colunas data/descrição/valor pelo cabeçalho, datas BR/ISO, centavos **com sinal** e decimal por
+  locale do delimitador), persistido numa **conta escolhida** com dedup pelo hash composto
+  (`date+amount+memo`, sem FITID). **Fecha o último `[Must]` (OFX/CSV da Fase 0).** 67 testes verdes.
 - **Cuidado de versão:** Next 16 e Prisma 7 trazem breaking changes vs. training — Prisma 7
   exige driver adapter (sem `new PrismaClient()` puro) e o `migrate dev` **não regenera** o
   client (rodar `npx prisma generate` após mudar o schema; e **reiniciar o `next dev`** após
@@ -95,16 +100,14 @@ decidir qualquer coisa de arquitetura ou escopo.
 
 ## Próxima fatia
 
-**Escopo MoSCoW (Fases 0–4) completo, mais P/VP, tags, médias/inclinação e calendário de dividendos.**
-Dos 4 gaps do escopo inicial, 3 entregues (tags · médias/inclinação · calendário); resta um, adiado
-de propósito:
-- **Import CSV** (Fase 0 `[Must]` "OFX/CSV") — CSV era *fallback* do OFX (§6) e o Inter exporta OFX,
-  então nunca foi necessário (YAGNI). Único `[Must]` não-coberto, por escolha.
+**Escopo funcional 100% coberto.** MoSCoW (Fases 0–4) completo + P/VP, e os 4 gaps do escopo
+inicial todos fechados (tags · médias/inclinação · calendário de dividendos · import CSV). Não há
+mais `[Must]`/`[Should]`/`[Could]` em aberto. O que resta é só:
 - `Won't` do escopo §3 (Open Finance/Pluggy, previsão/IA, Monte Carlo, etc.) — fora de escopo por design.
 - Infra adiada (escopo §2/§7): deploy **EC2 + Tailscale**, auth/HTTPS, cripto dos tokens, backup.
 
-Próxima fatia: você escolhe — import CSV (fecha o último `[Must]`), mais polish, ou começar o
-**deploy** (EC2 + Tailscale, precisa das suas credenciais). Decidir antes da `feature/*`.
+Próxima fatia: você escolhe — mais polish, ou começar o **deploy** (EC2 + Tailscale, precisa das suas
+credenciais). Decidir antes da `feature/*`.
 
 ## Rodar
 
