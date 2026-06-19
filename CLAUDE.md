@@ -52,7 +52,8 @@ decidir qualquer coisa de arquitetura ou escopo.
   médio derivado de aportes/vendas), **cotações** atrás da porta `QuoteProvider` (adapter brapi +
   entrada manual; offline mantém a última), **valor da carteira** + resultado, **dividendos** +
   **renda passiva mensal**, e **alocação + DY**. brapi requer `BRAPI_TOKEN` no `.env.local` (sem
-  token, preço manual). `[Could]` P/VP + indicadores de FII **adiado**. 40 testes verdes.
+  token, preço manual). `[Could]` P/VP + indicadores de FII entregue depois (fatia
+  `fii-indicators`, abaixo). 40 testes verdes.
 - **Fase 3 (análise & tendências) entregue** (em `dev` e `main`): `/analysis` — **patrimônio no
   tempo** (caixa + investimentos a mercado, `netWorthSeries` no core), tendências (variação 3m +
   **drawdown**) e **renda ativa × dividendos** (fatia da renda vinda de dividendos, `passiveShare`).
@@ -69,6 +70,11 @@ decidir qualquer coisa de arquitetura ou escopo.
 - **Fatia `aporte↔caixa` entregue** (em `dev` e `main`): aporte/venda debita/credita uma conta-caixa
   (Transaction `type=transfer`, `transferGroupId`), excluída das agregações de receita/despesa — o
   **patrimônio não conta mais o aporte em dobro**. Suíte com 49 testes verdes.
+- **Fatia `fii-indicators` entregue** (em `dev` e `main`): **P/VP** por ativo (a partir do **VPA**
+  informado manualmente — mesmo padrão da cotação manual, já que a brapi só cobre preço + dividendos)
+  e **DY por ativo** (12 meses) num card **"Indicadores"** em `/investments`. `priceToBook` e
+  `trailingDividendYield` no core; indicadores **descritivos**, sem cor de recomendação (§3). Fecha o
+  `[Could]` de P/VP da Fase 2. 54 testes verdes.
 - **Cuidado de versão:** Next 16 e Prisma 7 trazem breaking changes vs. training — Prisma 7
   exige driver adapter (sem `new PrismaClient()` puro) e o `migrate dev` **não regenera** o
   client (rodar `npx prisma generate` após mudar o schema; e **reiniciar o `next dev`** após
@@ -76,13 +82,14 @@ decidir qualquer coisa de arquitetura ou escopo.
 
 ## Próxima fatia
 
-**Escopo MoSCoW (Fases 0–4) completo.** O que sobra são itens adiados de propósito:
-- Produto: `[Could]` **P/VP + indicadores de FII** (Fase 2); os `Won't` do escopo §3 (Open
-  Finance/Pluggy, previsão/IA, Monte Carlo, etc.).
+**Escopo MoSCoW (Fases 0–4) completo + o `[Could]` de P/VP entregue.** O que sobra são itens
+adiados de propósito:
+- Produto: os `Won't` do escopo §3 (Open Finance/Pluggy, previsão/IA, Monte Carlo, etc.) — fora
+  de escopo por design.
 - Infra adiada (escopo §2/§7): deploy **EC2 + Tailscale**, auth/HTTPS, cripto dos tokens, backup.
 
-Polish e aporte↔caixa feitos. Próxima fatia: você escolhe — mais polish, **P/VP + indicadores de
-FII** (`[Could]`), ou começar o **deploy** (EC2 + Tailscale). Decidir antes da `feature/*`.
+Polish, aporte↔caixa e indicadores de FII feitos. Próxima fatia: você escolhe — mais polish ou
+começar o **deploy** (EC2 + Tailscale, precisa das suas credenciais). Decidir antes da `feature/*`.
 
 ## Rodar
 
