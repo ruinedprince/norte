@@ -180,6 +180,32 @@ export function removeTransactionTag(transactionId: string, tagId: string) {
   });
 }
 
+/** Set (or clear, with null) a transaction's category — a manual per-row override,
+ *  independent of the auto-categorization rules. */
+export function setTransactionCategory(transactionId: string, categoryId: string | null) {
+  return prisma.transaction.update({
+    where: { id: transactionId },
+    data: { categoryId },
+  });
+}
+
+/**
+ * Mark a transaction as a `transfer` (excluded from income/expense/spend across
+ * the aggregations) or restore it to income/expense derived from its sign. For
+ * money that only passes through an account (reimbursements, family, etc.).
+ */
+export async function setTransactionTransfer(transactionId: string, isTransfer: boolean) {
+  const tx = await prisma.transaction.findUnique({
+    where: { id: transactionId },
+    select: { amountCents: true },
+  });
+  if (!tx) throw new Error("Transação não encontrada.");
+  return prisma.transaction.update({
+    where: { id: transactionId },
+    data: { type: isTransfer ? "transfer" : typeFromAmount(tx.amountCents) },
+  });
+}
+
 /** All accounts, oldest first — for the manual-entry account picker. */
 export function listAccounts() {
   return prisma.account.findMany({

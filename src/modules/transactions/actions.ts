@@ -14,6 +14,8 @@ import {
   persistCsvTransactions,
   persistStatement,
   removeTransactionTag,
+  setTransactionCategory,
+  setTransactionTransfer,
   type ImportResult,
 } from "./repository";
 
@@ -175,4 +177,24 @@ export async function removeTransactionTagAction(
 ): Promise<void> {
   await removeTransactionTag(transactionId, tagId);
   revalidatePath("/transactions");
+}
+
+/** Set or clear a transaction's category (manual per-row override). */
+export async function setTransactionCategoryAction(
+  transactionId: string,
+  categoryId: string | null,
+): Promise<void> {
+  await setTransactionCategory(transactionId, categoryId);
+  revalidatePath("/transactions");
+  revalidatePath("/");
+}
+
+/** Toggle whether a transaction counts as a transfer (out of income/expense). */
+export async function setTransactionTransferAction(
+  transactionId: string,
+  isTransfer: boolean,
+): Promise<void> {
+  await setTransactionTransfer(transactionId, isTransfer);
+  revalidatePath("/transactions");
+  revalidatePath("/");
 }
