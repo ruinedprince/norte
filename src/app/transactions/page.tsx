@@ -40,6 +40,7 @@ export default async function TransactionsPage({
     listTags(),
   ]);
   const allTags = tags.map((t) => ({ id: t.id, name: t.name }));
+  const allCategories = categories.map((c) => ({ id: c.id, name: c.name }));
 
   const now = new Date();
   const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
@@ -135,7 +136,7 @@ export default async function TransactionsPage({
               ))}
             </div>
           )}
-          <TransactionsTable rows={rows} allTags={allTags} />
+          <TransactionsTable rows={rows} allTags={allTags} categories={allCategories} />
         </CardContent>
       </Card>
     </div>

@@ -10,13 +10,16 @@ import {
 import { cn } from "@/lib/utils";
 import { formatTxDate } from "@/lib/format";
 
+import { RowCategory, type CategoryRef } from "./row-category";
 import { RowTags, type TagRef } from "./row-tags";
 
 interface TransactionRow {
   id: string;
   date: Date;
   amountCents: number;
+  type: string;
   description: string;
+  categoryId: string | null;
   account: { name: string };
   category: { name: string } | null;
   tags: { tag: TagRef }[];
@@ -25,9 +28,11 @@ interface TransactionRow {
 export function TransactionsTable({
   rows,
   allTags = [],
+  categories = [],
 }: {
   rows: TransactionRow[];
   allTags?: TagRef[];
+  categories?: CategoryRef[];
 }) {
   if (rows.length === 0) {
     return (
@@ -50,24 +55,27 @@ export function TransactionsTable({
       </TableHeader>
       <TableBody>
         {rows.map((tx) => {
+          const isTransfer = tx.type === "transfer";
           const isIncome = tx.amountCents >= 0;
           return (
             <TableRow key={tx.id}>
-              <TableCell className="text-muted-foreground tabular-nums">
+              <TableCell className="text-muted-foreground tabular-nums align-top">
                 {formatTxDate(tx.date)}
               </TableCell>
-              <TableCell className="max-w-xs truncate font-medium">
-                {tx.description || "—"}
-                {tx.category && (
-                  <span className="ml-2 text-xs font-normal text-muted-foreground">
-                    {tx.category.name}
-                  </span>
-                )}
+              <TableCell className="max-w-xs align-top">
+                <div className="truncate font-medium">{tx.description || "—"}</div>
+                <RowCategory
+                  transactionId={tx.id}
+                  categoryId={tx.categoryId}
+                  categoryName={tx.category?.name ?? null}
+                  isTransfer={isTransfer}
+                  categories={categories}
+                />
               </TableCell>
-              <TableCell className="text-muted-foreground">
+              <TableCell className="align-top text-muted-foreground">
                 {tx.account.name}
               </TableCell>
-              <TableCell>
+              <TableCell className="align-top">
                 <RowTags
                   transactionId={tx.id}
                   tags={tx.tags.map((t) => t.tag)}
@@ -76,9 +84,14 @@ export function TransactionsTable({
               </TableCell>
               <TableCell
                 className={cn(
-                  "text-right font-medium tabular-nums",
-                  // Money in is green; spend stays neutral (escopo §5).
-                  isIncome ? "text-positive" : "text-foreground",
+                  "text-right align-top font-medium tabular-nums",
+                  // Money in is green; spend neutral; a transfer is out of the
+                  // cash flow, so it reads muted (escopo §5).
+                  isTransfer
+                    ? "text-muted-foreground"
+                    : isIncome
+                      ? "text-positive"
+                      : "text-foreground",
                 )}
               >
                 {formatBRL(tx.amountCents)}
