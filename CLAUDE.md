@@ -103,11 +103,16 @@ decidir qualquer coisa de arquitetura ou escopo.
 **Escopo funcional 100% coberto.** MoSCoW (Fases 0–4) completo + P/VP, e os 4 gaps do escopo
 inicial todos fechados (tags · médias/inclinação · calendário de dividendos · import CSV). Não há
 mais `[Must]`/`[Should]`/`[Could]` em aberto. O que resta é só:
+- **Deploy EC2 + Tailscale em andamento** (escopo §2/§7): artefatos prontos no repo —
+  [`docs/deploy.md`](docs/deploy.md) (runbook), `scripts/provision.sh` (swap + Node 22 + `npm ci` +
+  `prisma migrate deploy` + build + systemd), `deploy/norte.service`, `.env.example`. Plano travado:
+  **Free Tier `t3.micro`/`t2.micro` + 2 GB de swap** (build roda na box; `better-sqlite3` é nativo,
+  por isso não dá pra buildar no Windows e copiar), região **sa-east-1**, **Tailscale Serve** (HTTPS
+  no tailnet, **sem login no app** — a VPN é o perímetro, sem porta pública), **backup depois**.
+  Falta **você** executar os passos da AWS/Tailscale (conta + EC2 + `tailscale up/serve` + colar o
+  `BRAPI_TOKEN` no `.env` da box). Litestream + cripto-em-repouso dos tokens ficam para fatias
+  seguintes.
 - `Won't` do escopo §3 (Open Finance/Pluggy, previsão/IA, Monte Carlo, etc.) — fora de escopo por design.
-- Infra adiada (escopo §2/§7): deploy **EC2 + Tailscale**, auth/HTTPS, cripto dos tokens, backup.
-
-Próxima fatia: você escolhe — mais polish, ou começar o **deploy** (EC2 + Tailscale, precisa das suas
-credenciais). Decidir antes da `feature/*`.
 
 ## Rodar
 

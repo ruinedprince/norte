@@ -1,0 +1,22 @@
+[Unit]
+Description=Norte — local-first personal finance (Next.js)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/norte
+# Next.js reads .env from the working directory on its own; this is here so the
+# service also has the vars explicitly. Keep .env off git (secrets, §7).
+EnvironmentFile=/home/ubuntu/norte/.env
+Environment=NODE_ENV=production
+Environment=PORT=3000
+# `npm run start` == `next start`, serving the production build on PORT.
+ExecStart=/usr/bin/npm run start
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target
