@@ -103,15 +103,18 @@ decidir qualquer coisa de arquitetura ou escopo.
 **Escopo funcional 100% coberto.** MoSCoW (Fases 0–4) completo + P/VP, e os 4 gaps do escopo
 inicial todos fechados (tags · médias/inclinação · calendário de dividendos · import CSV). Não há
 mais `[Must]`/`[Should]`/`[Could]` em aberto. O que resta é só:
-- **Deploy EC2 + Tailscale em andamento** (escopo §2/§7): artefatos prontos no repo —
-  [`docs/deploy.md`](docs/deploy.md) (runbook), `scripts/provision.sh` (swap + Node 22 + `npm ci` +
-  `prisma migrate deploy` + build + systemd), `deploy/norte.service`, `.env.example`. Plano travado:
-  **Free Tier `t3.micro`/`t2.micro` + 2 GB de swap** (build roda na box; `better-sqlite3` é nativo,
-  por isso não dá pra buildar no Windows e copiar), região **sa-east-1**, **Tailscale Serve** (HTTPS
-  no tailnet, **sem login no app** — a VPN é o perímetro, sem porta pública), **backup depois**.
-  Falta **você** executar os passos da AWS/Tailscale (conta + EC2 + `tailscale up/serve` + colar o
-  `BRAPI_TOKEN` no `.env` da box). Litestream + cripto-em-repouso dos tokens ficam para fatias
-  seguintes.
+- **Runtime escolhido: app local standalone** (sem custo, sem servidor). O dono decidiu não pagar
+  hospedagem agora e só precisa de acesso pessoal — então o Norte roda na própria máquina:
+  `scripts\build-norte.bat` (build) + `scripts\start-norte.bat` (`next start` em `localhost:3000`),
+  atalho na pasta **Inicializar** (auto-start no logon) e **"instalar como app"** no Edge/Chrome
+  (janela própria). Runbook em [`docs/run-local.md`](docs/run-local.md). Acesso do celular **opcional**
+  via Tailscale na própria máquina (grátis). Limite aceito: disponível enquanto o PC estiver ligado.
+  > Nota sobre o AWS Free Tier: contas novas (desde jul/2025) ganham **~US$ 200 em créditos por ~6
+  > meses** (não mais "12 meses"), depois pago (~US$ 9/mês a micro) — o que pesou na escolha pelo local.
+- **EC2 + Tailscale retido como opção futura** (escopo §2/§7): artefatos prontos e versionados —
+  [`docs/deploy.md`](docs/deploy.md), `scripts/provision.sh` (swap + Node 22 + `prisma migrate deploy`
+  + build + systemd), `deploy/norte.service`, `.env.example`. Servem pra **qualquer Ubuntu** (EC2, VPS
+  ou home server) se um dia quiser acesso remoto 24/7. Backup Litestream + cripto dos tokens, idem.
 - `Won't` do escopo §3 (Open Finance/Pluggy, previsão/IA, Monte Carlo, etc.) — fora de escopo por design.
 
 ## Rodar
