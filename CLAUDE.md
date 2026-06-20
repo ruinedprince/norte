@@ -105,10 +105,12 @@ inicial todos fechados (tags · médias/inclinação · calendário de dividendo
 mais `[Must]`/`[Should]`/`[Could]` em aberto. O que resta é só:
 - **Runtime escolhido: app local standalone** (sem custo, sem servidor). O dono decidiu não pagar
   hospedagem agora e só precisa de acesso pessoal — então o Norte roda na própria máquina:
-  `scripts\build-norte.bat` (build) + `scripts\start-norte.bat` (`next start` em `localhost:3000`),
-  atalho na pasta **Inicializar** (auto-start no logon) e **"instalar como app"** no Edge/Chrome
-  (janela própria). Runbook em [`docs/run-local.md`](docs/run-local.md). Acesso do celular **opcional**
-  via Tailscale na própria máquina (grátis). Limite aceito: disponível enquanto o PC estiver ligado.
+  `scripts\build-norte.bat` (build) + `scripts\launch-norte.ps1`/`.bat` (sobe o `next start` escondido
+  e abre o Norte numa **janela de app pequena no canto superior direito** via Edge/Chrome `--app`) +
+  `scripts\install-autostart.bat` (cria atalho na pasta **Inicializar** → abre sozinho no logon).
+  `start-norte.bat` continua como modo "só servidor". Runbook em [`docs/run-local.md`](docs/run-local.md).
+  Acesso do celular **opcional** via Tailscale na própria máquina (grátis). Limite aceito: disponível
+  enquanto o PC estiver ligado.
   > Nota sobre o AWS Free Tier: contas novas (desde jul/2025) ganham **~US$ 200 em créditos por ~6
   > meses** (não mais "12 meses"), depois pago (~US$ 9/mês a micro) — o que pesou na escolha pelo local.
 - **EC2 + Tailscale retido como opção futura** (escopo §2/§7): artefatos prontos e versionados —

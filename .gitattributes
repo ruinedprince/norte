@@ -4,5 +4,6 @@
 *.sh text eol=lf
 *.service text eol=lf
 
-# Windows batch files need CRLF.
+# Windows batch / PowerShell scripts need CRLF.
 *.bat text eol=crlf
+*.ps1 text eol=crlf
