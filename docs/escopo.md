@@ -44,8 +44,13 @@ cada escopo é travado.
 
 - **Local-first agora** — roda em `localhost`, dados na máquina.
 - **Web responsiva.**
-- **Adiado de propósito:** deploy EC2 + Tailscale (VPN, sem porta pública) e
-  acesso pelo celular.
+- **Runtime escolhido (jun/2026):** **app local standalone** na máquina do dono —
+  build + `next start` escondido + janela de app + auto-start no logon; acesso pelo
+  celular via **IP na rede local** (ou Tailscale opcional). Sem hospedagem paga. Runbook:
+  `docs/run-local.md`.
+- **EC2 + Tailscale:** artefatos prontos (`docs/deploy.md`), **retidos como opção futura**
+  se um dia quiser acesso remoto 24/7.
+- **Repo público** em github.com/ruinedprince/norte (uso pessoal; banco e segredos nunca no git).
 
 ## 3. Escopo funcional ✅
 
@@ -98,6 +103,11 @@ Open Finance auto-sync (Pluggy); sync de banco em tempo real; IA/previsão de
 fluxo; Monte Carlo/projeção FIRE sofisticada; multi-moeda; quitação de dívidas;
 divisão de contas; anexos de recibo; **qualquer recomendação ou previsão de
 investimento** (por design).
+
+> **Orientação honesta ≠ recomendação (jun/2026):** o Norte **não** sugere o que comprar
+> (segue `Won't`), mas ganhou uma camada de **orientação descritiva** — **alocação-alvo que
+> o usuário define + desvio + alertas** (a "fora da alocação alvo" da Fase 4). A linha é:
+> descreve o **seu** plano, nunca dá "dica de ativo".
 
 ### Ordem F1/F2
 
@@ -220,8 +230,10 @@ Escopo atual (local-first) — suficiente e feito:
   (`.env*`).
 - Token brapi e afins em `.env.local` — nunca no banco, no git ou em chat.
 
-**Deferido** (gatilho = decisão de deploy): auth (Auth.js/MFA **ou** VPN
-Tailscale), HTTPS, cripto-em-repouso dos tokens, backup Litestream.
+**Gatilho resolvido (jun/2026):** runtime = **local standalone**, sem deploy remoto.
+Logo: **auth e HTTPS ficam N/A** (localhost, um usuário); **backup automático (Litestream)
+e cripto-em-repouso dos tokens** só entram se um dia for pro remoto. Backup local
+recomendado: copiar o `dev.db` de tempos em tempos.
 
 ## 8. Método de trabalho ✅
 

@@ -93,6 +93,12 @@ decidir qualquer coisa de arquitetura ou escopo.
   colunas data/descrição/valor pelo cabeçalho, datas BR/ISO, centavos **com sinal** e decimal por
   locale do delimitador), persistido numa **conta escolhida** com dedup pelo hash composto
   (`date+amount+memo`, sem FITID). **Fecha o último `[Must]` (OFX/CSV da Fase 0).** 67 testes verdes.
+- **Fatias de uso real (jun/2026, em `dev` e `main`, projeto já em uso):** **categoria por linha**
+  + **marcar transferência** na lista (`setTransactionCategory`/`setTransactionTransfer`), **busca +
+  paginação** em `/transactions` (`listTransactionsPage`), e **plano de alocação-alvo** em
+  `/investments` (`allocationVsTarget` no core — alvo por tipo × atual + desvio/alerta, **orientação
+  honesta sem recomendação**, §3). Projeto **público** em github.com/ruinedprince/norte (gh: usar a
+  conta `ruinedprince` pra push — ver memória). **72 testes verdes.**
 - **Cuidado de versão:** Next 16 e Prisma 7 trazem breaking changes vs. training — Prisma 7
   exige driver adapter (sem `new PrismaClient()` puro) e o `migrate dev` **não regenera** o
   client (rodar `npx prisma generate` após mudar o schema; e **reiniciar o `next dev`** após
