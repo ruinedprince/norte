@@ -146,6 +146,45 @@ export async function listTransactions(limit = 200, tagId?: string) {
   });
 }
 
+/**
+ * Paginated + searchable transactions for the Transações screen. `query` matches
+ * the description (SQLite LIKE — case-insensitive for ASCII); `tagId` filters to
+ * a tag. Offset pagination with a total count for the page controls.
+ */
+export async function listTransactionsPage(opts: {
+  query?: string;
+  tagId?: string;
+  page?: number;
+  pageSize?: number;
+}) {
+  const pageSize = opts.pageSize ?? 50;
+  const page = Math.max(1, opts.page ?? 1);
+  const query = opts.query?.trim();
+  const where = {
+    ...(opts.tagId ? { tags: { some: { tagId: opts.tagId } } } : {}),
+    ...(query ? { description: { contains: query } } : {}),
+  };
+
+  const [rows, total] = await Promise.all([
+    prisma.transaction.findMany({
+      where,
+      orderBy: [{ date: "desc" }, { createdAt: "desc" }],
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+      include: { account: true, category: true, tags: { include: { tag: true } } },
+    }),
+    prisma.transaction.count({ where }),
+  ]);
+
+  return {
+    rows,
+    total,
+    page,
+    pageSize,
+    pageCount: Math.max(1, Math.ceil(total / pageSize)),
+  };
+}
+
 /** All tags, alphabetical, with how many transactions carry each. */
 export function listTags() {
   return prisma.tag.findMany({
