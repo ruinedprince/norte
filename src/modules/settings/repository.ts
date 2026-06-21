@@ -18,3 +18,32 @@ export async function setSavingsGoalRate(rate: number): Promise<void> {
     update: { value: String(rate) },
   });
 }
+
+const TARGET_ALLOC_KEY = "targetAllocationByKind";
+
+/** Target portfolio allocation by asset kind, as percentages (e.g. {fii: 50}).
+ *  Empty object when no plan is set. Only finite positive values are kept. */
+export async function getTargetAllocation(): Promise<Record<string, number>> {
+  const row = await prisma.setting.findUnique({ where: { key: TARGET_ALLOC_KEY } });
+  if (!row) return {};
+  try {
+    const parsed: unknown = JSON.parse(row.value);
+    if (!parsed || typeof parsed !== "object") return {};
+    const out: Record<string, number> = {};
+    for (const [key, value] of Object.entries(parsed as Record<string, unknown>)) {
+      const n = Number(value);
+      if (Number.isFinite(n) && n > 0) out[key] = n;
+    }
+    return out;
+  } catch {
+    return {};
+  }
+}
+
+export async function setTargetAllocation(targets: Record<string, number>): Promise<void> {
+  await prisma.setting.upsert({
+    where: { key: TARGET_ALLOC_KEY },
+    create: { key: TARGET_ALLOC_KEY, value: JSON.stringify(targets) },
+    update: { value: JSON.stringify(targets) },
+  });
+}
