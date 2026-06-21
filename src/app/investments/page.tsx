@@ -1,3 +1,4 @@
+import { allocationVsTarget } from "@/core/domain/allocation";
 import { formatBRL } from "@/core/domain/money";
 import { AllocationCard } from "@/modules/investments/components/allocation-card";
 import { AssetForm } from "@/modules/investments/components/asset-form";
@@ -7,6 +8,7 @@ import { IndicatorsCard } from "@/modules/investments/components/indicators-card
 import { InvestmentTransactionForm } from "@/modules/investments/components/investment-transaction-form";
 import { PassiveIncomeChart } from "@/modules/investments/components/passive-income-chart";
 import { QuotesCard } from "@/modules/investments/components/quotes-card";
+import { TargetAllocationCard } from "@/modules/investments/components/target-allocation-card";
 import {
   dividendCalendar,
   listAssets,
@@ -17,6 +19,7 @@ import {
   portfolioDividendYield,
 } from "@/modules/investments/repository";
 import { listAccounts } from "@/modules/transactions/repository";
+import { getTargetAllocation } from "@/modules/settings/repository";
 import {
   Card,
   CardContent,
@@ -44,7 +47,7 @@ const KIND_LABELS: Record<string, string> = { fii: "FII", stock: "Ação", etf: 
 const dash = (cents: number | null) => (cents == null ? "—" : formatBRL(cents));
 
 export default async function InvestmentsPage() {
-  const [positions, assets, passiveIncome, dividends, allocation, dy, accounts, calendar] =
+  const [positions, assets, passiveIncome, dividends, allocation, dy, accounts, calendar, targetAlloc] =
     await Promise.all([
       listValuedPositions(),
       listAssets(),
@@ -54,6 +57,7 @@ export default async function InvestmentsPage() {
       portfolioDividendYield(),
       listAccounts(),
       dividendCalendar(),
+      getTargetAllocation(),
     ]);
   const held = positions.filter((p) => p.quantity > 0);
   const investedTotal = held.reduce((sum, p) => sum + p.investedCents, 0);
@@ -61,6 +65,10 @@ export default async function InvestmentsPage() {
   const marketTotal = quoted.reduce((sum, p) => sum + (p.marketValueCents ?? 0), 0);
   const gain = marketTotal - quoted.reduce((sum, p) => sum + p.investedCents, 0);
   const hasQuotes = quoted.length > 0;
+  const targetRows = allocationVsTarget(
+    allocation.byKind.map((s) => ({ key: s.key, fraction: s.fraction })),
+    targetAlloc,
+  );
 
   const now = new Date();
   const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
@@ -203,6 +211,22 @@ export default async function InvestmentsPage() {
         </CardHeader>
         <CardContent>
           <AllocationCard allocation={allocation} dy={dy} />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Plano de alocação</CardTitle>
+          <CardDescription>
+            Seu alvo por tipo × o atual — o Norte avisa quando você sai do plano.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <TargetAllocationCard
+            rows={targetRows}
+            targets={targetAlloc}
+            hasPositions={allocation.totalCents > 0}
+          />
         </CardContent>
       </Card>
 
